@@ -1,0 +1,182 @@
+{
+  "name": "pandoc-vscode",
+  "displayName": "Pandoc Markdown Converter",
+  "description": "Convert Markdown files to DOCX, HTML, and PDF using Pandoc",
+  "version": "0.0.1",
+  "publisher": "insight",
+  "engines": {
+    "vscode": "^1.93.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onLanguage:markdown"
+  ],
+  "main": "./dist/extension.js",
+  "contributes": {
+    "commands": [
+      {
+        "command": "pandoc.convertToDocx",
+        "title": "Convert Markdown to DOCX",
+        "category": "Pandoc",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "pandoc.convertToHtml",
+        "title": "Convert Markdown to HTML",
+        "category": "Pandoc",
+        "enablement": "editorLangId == markdown"
+      },
+      {
+        "command": "pandoc.convertToPdf",
+        "title": "Convert Markdown to PDF",
+        "category": "Pandoc",
+        "enablement": "editorLangId == markdown"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "pandoc.convertToDocx",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "pandoc.convertToHtml",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "pandoc.convertToPdf",
+          "when": "editorLangId == markdown"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "pandoc.convertToDocx",
+          "group": "pandoc@1",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "pandoc.convertToHtml",
+          "group": "pandoc@2",
+          "when": "editorLangId == markdown"
+        },
+        {
+          "command": "pandoc.convertToPdf",
+          "group": "pandoc@3",
+          "when": "editorLangId == markdown"
+        }
+      ],
+      "explorer/context": [
+        {
+          "command": "pandoc.convertToDocx",
+          "group": "pandoc@1",
+          "when": "resourceExtname == .md"
+        },
+        {
+          "command": "pandoc.convertToHtml",
+          "group": "pandoc@2",
+          "when": "resourceExtname == .md"
+        },
+        {
+          "command": "pandoc.convertToPdf",
+          "group": "pandoc@3",
+          "when": "resourceExtname == .md"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "Pandoc Converter",
+      "properties": {
+        "pandoc.path": {
+          "type": "string",
+          "default": "",
+          "description": "Optional absolute path to the pandoc executable. If empty, 'pandoc' from PATH is used."
+        },
+        "pandoc.outputDir": {
+          "type": "string",
+          "default": "",
+          "description": "Default output directory. Leave empty to use the source file's directory. Relative paths are resolved against the workspace folder."
+        },
+        "pandoc.docx.referenceDoc": {
+          "type": "string",
+          "default": "",
+          "description": "Path to a reference DOCX file for styling (--reference-doc)."
+        },
+        "pandoc.docx.numberSections": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add section numbers to DOCX output (--number-sections)."
+        },
+        "pandoc.docx.customArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional Pandoc arguments for DOCX conversion."
+        },
+        "pandoc.html.standalone": {
+          "type": "boolean",
+          "default": true,
+          "description": "Produce a standalone HTML file with headers (--standalone)."
+        },
+        "pandoc.html.css": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "CSS files to include in HTML output (--css)."
+        },
+        "pandoc.html.customArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional Pandoc arguments for HTML conversion."
+        },
+        "pandoc.pdf.pdfEngine": {
+          "type": "string",
+          "enum": [
+            "",
+            "pdflatex",
+            "xelatex",
+            "lualatex",
+            "wkhtmltopdf"
+          ],
+          "default": "",
+          "description": "PDF engine to use (--pdf-engine). Leave empty for Pandoc default."
+        },
+        "pandoc.pdf.numberSections": {
+          "type": "boolean",
+          "default": false,
+          "description": "Add section numbers to PDF output (--number-sections)."
+        },
+        "pandoc.pdf.customArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "Additional Pandoc arguments for PDF conversion."
+        }
+      }
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p .",
+    "watch": "tsc -watch -p .",
+    "lint": "eslint src --ext ts"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.93.0",
+    "@typescript-eslint/eslint-plugin": "^7.0.0",
+    "@typescript-eslint/parser": "^7.0.0",
+    "eslint": "^8.57.0",
+    "typescript": "^5.4.0"
+  }
+}
