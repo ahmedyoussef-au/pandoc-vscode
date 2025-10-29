@@ -1,98 +1,163 @@
-# Pandoc Markdown Converter for VSCode
+# Pandoc Extension for VSCode
 
-Convert your Markdown files to DOCX, HTML, and PDF formats using [Pandoc](https://pandoc.org/) directly from VSCode.
+Convert Markdown files to DOCX, HTML and PDF using Pandoc directly from Visual Studio Code.
 
-## Features
+This extension integrates Pandoc into Visual Studio Code, allowing you to convert Markdown documents to various formats without leaving your editor.
 
-- **Convert Markdown to DOCX, HTML, and PDF** using Pandoc
-- **Command Palette Integration**: Access conversion commands from the Command Palette
-- **Context Menu**: Right-click on Markdown files in the editor or Explorer to convert
-- **Per-Format Configuration**: Customize Pandoc options for each output format
-- **Auto-Open**: Converted files open automatically after successful conversion
-- **Flexible Output**: Configure default output directory or use the source file's directory
+## ⚡ Key Features
+
+- **Single file or folder conversion** - Convert one file or an entire folder
+- **Customizable options** - Configure Pandoc command-line arguments
+- **Multiple output formats** - HTML, PDF, DOCX, and more
+- **Smart output handling** - Converted files saved alongside source files
+- **Fast processing** - Quick conversions powered by Pandoc
+
+### Single File Conversion
+
+Convert individual Markdown files to DOCX, HTML, or PDF using two convenient methods:
+
+- **Right-click** on any Markdown file in the Explorer or Editor → **Pandoc** submenu → Choose format
+- **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`): Open a Markdown file and run:
+  - `Pandoc: Convert Markdown to DOCX`
+  - `Pandoc: Convert Markdown to HTML`
+  - `Pandoc: Convert Markdown to PDF`
+
+### Folder Conversion
+
+Combine and convert all Markdown files in a folder into a single document:
+
+- **Right-click** on any folder in the Explorer → **Pandoc** submenu → Choose format:
+  - `Pandoc: Convert All Markdown to DOCX`
+  - `Pandoc: Convert All Markdown to HTML`
+  - `Pandoc: Convert All Markdown to PDF`
 
 ## Requirements
 
-**Pandoc must be installed on your system.** 
+**Pandoc must be installed on your system** before using this extension.
 
-Download and install Pandoc from: [https://pandoc.org/installing.html](https://pandoc.org/installing.html)
+### Installing Pandoc
 
-After installation, ensure `pandoc` is available in your PATH, or configure the `pandoc.path` setting.
+- **macOS**: `brew install pandoc`
+- **Windows**: Download from [pandoc.org](https://pandoc.org/installing.html)
+- **Linux**: `sudo apt-get install pandoc` (Debian/Ubuntu) or `sudo dnf install pandoc` (Fedora)
 
-## Usage
+Verify installation by running `pandoc --version` in your terminal.
 
-### From Command Palette
+## Extension Settings
 
-1. Open a Markdown file (`.md`)
-2. Press `Cmd+Shift+P` (Mac) or `Ctrl+Shift+P` (Windows/Linux)
-3. Type "Pandoc" and select:
-   - **Pandoc: Convert Markdown to DOCX**
-   - **Pandoc: Convert Markdown to HTML**
-   - **Pandoc: Convert Markdown to PDF**
-
-### From Context Menu
-
-1. Right-click in an open Markdown editor, or
-2. Right-click on a `.md` file in the Explorer
-3. Select one of the conversion options
-
-The converted file will be created and automatically opened.
-
-## Configuration
-
-Access settings via `Preferences > Settings` and search for "Pandoc".
+This extension contributes the following settings:
 
 ### General Settings
 
-- **`pandoc.path`** (string, default: `""`): Optional absolute path to the `pandoc` executable. Leave empty to use `pandoc` from PATH.
-- **`pandoc.outputDir`** (string, default: `""`): Default output directory. Leave empty to save in the same directory as the source file. Relative paths are resolved against the workspace folder.
+* `pandoc.path`: Optional absolute path to the pandoc executable. If empty, 'pandoc' from PATH is used.
+* `pandoc.outputDir`: Default output directory. Leave empty to use the source file's directory. Relative paths are resolved against the workspace folder.
 
-### DOCX Settings
+### DOCX Conversion Settings
 
-- **`pandoc.docx.referenceDoc`** (string, default: `""`): Path to a reference DOCX file for custom styling (`--reference-doc`).
-- **`pandoc.docx.numberSections`** (boolean, default: `false`): Add section numbers (`--number-sections`).
-- **`pandoc.docx.customArgs`** (array, default: `[]`): Additional Pandoc arguments for DOCX conversion.
+* `pandoc.docx.customArgs`: Pandoc arguments for DOCX conversion (applies to all DOCX conversions)
+* `pandoc.docx.singleFileCustomArgs`: Additional arguments for DOCX conversion when converting a single file
+* `pandoc.docx.multipleFilesCustomArgs`: Additional arguments for DOCX conversion when converting multiple files in a folder
 
-### HTML Settings
+### HTML Conversion Settings
 
-- **`pandoc.html.standalone`** (boolean, default: `true`): Produce a standalone HTML file with headers (`--standalone`).
-- **`pandoc.html.css`** (array, default: `[]`): CSS files to include in the HTML output (`--css`).
-- **`pandoc.html.customArgs`** (array, default: `[]`): Additional Pandoc arguments for HTML conversion.
+* `pandoc.html.customArgs`: Pandoc arguments for HTML conversion (applies to all HTML conversions)
+* `pandoc.html.singleFileCustomArgs`: Additional arguments for HTML conversion when converting a single file
+* `pandoc.html.multipleFilesCustomArgs`: Additional arguments for HTML conversion when converting multiple files in a folder
 
-### PDF Settings
+### PDF Conversion Settings
 
-- **`pandoc.pdf.pdfEngine`** (enum: `""`, `"pdflatex"`, `"xelatex"`, `"lualatex"`, `"wkhtmltopdf"`, default: `""`): Specify the PDF engine (`--pdf-engine`). Leave empty for Pandoc's default.
-- **`pandoc.pdf.numberSections`** (boolean, default: `false`): Add section numbers (`--number-sections`).
-- **`pandoc.pdf.customArgs`** (array, default: `[]`): Additional Pandoc arguments for PDF conversion.
+* `pandoc.pdf.customArgs`: Pandoc arguments for PDF conversion (applies to all PDF conversions)
+* `pandoc.pdf.singleFileCustomArgs`: Additional arguments for PDF conversion when converting a single file
+* `pandoc.pdf.multipleFilesCustomArgs`: Additional arguments for PDF conversion when converting multiple files in a folder
 
-## Example Configuration
+### Example Configuration
 
 ```json
 {
-  "pandoc.outputDir": "output",
-  "pandoc.docx.numberSections": true,
-  "pandoc.docx.referenceDoc": "/path/to/reference.docx",
-  "pandoc.html.css": ["style.css"],
-  "pandoc.pdf.pdfEngine": "xelatex",
-  "pandoc.pdf.customArgs": ["-V", "geometry:margin=1in"]
+  "pandoc.path": "/usr/local/bin/pandoc",
+  "pandoc.outputDir": "${workspaceFolder}/output",
+  "pandoc.docx.customArgs": [
+    "--reference-doc=${workspaceFolder}/templates/template.docx",
+  ],
+  "pandoc.docx.singleFileCustomArgs": [
+    "--resource-path=../images:./images"
+  ],
+  "pandoc.docx.multipleFilesCustomArgs": [
+    "--reference-doc=${workspaceFolder}/templates/template-with-cover.docx",
+    "--number-sections",
+    "--toc"
+  ]
 }
 ```
 
-## Troubleshooting
+## Usage
 
-**"Pandoc not found" error:**
-- Ensure Pandoc is installed: [https://pandoc.org/installing.html](https://pandoc.org/installing.html)
-- Verify `pandoc --version` works in your terminal
-- If VSCode doesn't inherit your PATH, set `pandoc.path` to the absolute path of the Pandoc executable (e.g., `/usr/local/bin/pandoc`)
+### Convert a Single File
 
-**PDF conversion fails:**
-- PDF conversion requires a LaTeX distribution (e.g., TeX Live, MiKTeX) or another PDF engine like `wkhtmltopdf`
-- Install a LaTeX distribution or configure `pandoc.pdf.pdfEngine` appropriately
+#### Method 1: Right-Click Menu (Explorer or Editor)
+1. Right-click on a Markdown file in the Explorer or inside the editor
+2. Select **"Pandoc"** from the context menu
+3. Choose your desired format:
+   - **Convert Markdown to DOCX**
+   - **Convert Markdown to HTML**
+   - **Convert Markdown to PDF**
+4. The converted file appears in the same directory (or your configured `pandoc.outputDir`)
 
-## License
+#### Method 2: Command Palette
+1. Open a Markdown file in the editor
+2. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+3. Type **"Pandoc"** and select one of:
+   - **Pandoc: Convert Markdown to DOCX**
+   - **Pandoc: Convert Markdown to HTML**
+   - **Pandoc: Convert Markdown to PDF**
+4. Done!
 
-MIT
+### Convert an Entire Folder
+
+1. Right-click on any folder in the Explorer
+2. Select **"Pandoc"** from the context menu
+3. Choose your desired format:
+   - **Convert All Markdown to DOCX**
+   - **Convert All Markdown to HTML**
+   - **Convert All Markdown to PDF**
+4. All Markdown files (`.md`) in the folder will be converted
+5. Converted files are saved with the same names in the new format
+
+## Supported Conversions
+
+### Input Formats
+- Markdown (`.md`, `.markdown`)
+
+### Output Formats
+- **DOCX** - Microsoft Word documents
+- **HTML** - Web-ready documents
+- **PDF** - Requires LaTeX installation (e.g., xelatex, pdflatex)
+
+## Release Notes
+
+### 0.0.1
+
+Initial release of Pandoc VSCode Extension:
+- ✅ Convert single Markdown files via right-click or Command Palette
+- ✅ Convert entire folders of Markdown files at once
+- ✅ Configurable output settings and Pandoc options
+- ✅ Support for all Pandoc output formats
+
+---
 
 ## Contributing
 
-Contributions are welcome! Please submit issues and pull requests on GitHub.
+Contributions are welcome! Please visit our [GitHub repository](https://github.com/ayoussef-insight/pandoc-vscode) to:
+
+- Report bugs
+- Suggest features
+- Submit pull requests
+
+## License
+
+This extension is licensed under the [MIT License](./LICENSE).
+
+## Acknowledgements
+
+This extension is powered by [Pandoc](https://pandoc.org/), a universal document converter by John MacFarlane.
+

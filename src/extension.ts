@@ -1,8 +1,10 @@
 import * as vscode from 'vscode';
 import { convertMarkdown } from './pandoc';
+import * as fs from 'fs';
+import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
-  const register = (cmd: string, fmt: 'docx' | 'html' | 'pdf') =>
+  const registerActiveFile = (cmd: string, fmt: 'docx' | 'html' | 'pdf') =>
     vscode.commands.registerCommand(cmd, async (resource?: vscode.Uri) => {
       try {
         const uri = await getMarkdownUri(resource);
@@ -15,10 +17,42 @@ export function activate(context: vscode.ExtensionContext) {
       }
     });
 
+  const registerFolder = (cmd: string, fmt: 'docx' | 'html' | 'pdf') =>
+    vscode.commands.registerCommand(cmd, async (folderUri?: vscode.Uri) => {
+      try {
+        if (!folderUri) {
+          vscode.window.showWarningMessage('No folder selected.');
+          return;
+        }
+
+        const folderStat = await vscode.workspace.fs.stat(folderUri);
+        if (folderStat.type !== vscode.FileType.Directory) {
+          vscode.window.showWarningMessage('Please select a folder.');
+          return;
+        }
+
+        const mdFiles = await findMarkdownFiles(folderUri.fsPath);        
+        if (mdFiles.length === 0) {
+          vscode.window.showInformationMessage('No Markdown files found in this folder.');
+          return;
+        }
+        
+        // Create a glob pattern URI for the folder
+        const globPattern = path.join(folderUri.fsPath, '*.md');
+        const patternUri = vscode.Uri.file(globPattern);
+        await convertMarkdown(patternUri, fmt, true);
+      } catch (err: any) {
+        vscode.window.showErrorMessage(err?.message || String(err));
+      }
+    });
+
   context.subscriptions.push(
-    register('pandoc.convertToDocx', 'docx'),
-    register('pandoc.convertToHtml', 'html'),
-    register('pandoc.convertToPdf', 'pdf')
+    registerActiveFile('pandoc.convertToDocx', 'docx'),
+    registerActiveFile('pandoc.convertToHtml', 'html'),
+    registerActiveFile('pandoc.convertToPdf', 'pdf'),
+    registerFolder('pandoc.convertFolderToDocx', 'docx'),
+    registerFolder('pandoc.convertFolderToHtml', 'html'),
+    registerFolder('pandoc.convertFolderToPdf', 'pdf')
   );
 }
 
@@ -31,6 +65,12 @@ async function getMarkdownUri(resource?: vscode.Uri): Promise<vscode.Uri | undef
       return;
     }
     uri = editor.document.uri;
+  }
+  
+  // Skip validation for glob patterns
+  const isGlob = uri.fsPath.includes('*');
+  if (isGlob) {
+    return uri;
   }
   
   const doc = await vscode.workspace.openTextDocument(uri);
@@ -49,6 +89,27 @@ async function getMarkdownUri(resource?: vscode.Uri): Promise<vscode.Uri | undef
   }
   
   return uri;
+}
+
+async function findMarkdownFiles(dirPath: string): Promise<string[]> {
+  const mdFiles: string[] = [];
+
+  async function walk(dir: string): Promise<void> {
+    const entries = await fs.promises.readdir(dir, { withFileTypes: true });
+    
+    for (const entry of entries) {
+      const fullPath = path.join(dir, entry.name);
+      
+      if (entry.isDirectory()) {
+        await walk(fullPath);
+      } else if (entry.isFile() && entry.name.toLowerCase().endsWith('.md')) {
+        mdFiles.push(fullPath);
+      }
+    }
+  }
+
+  await walk(dirPath);
+  return mdFiles;
 }
 
 export function deactivate() {}

@@ -4,7 +4,7 @@ import { spawn } from 'child_process';
 
 type Format = 'docx' | 'html' | 'pdf';
 
-export async function convertMarkdown(uri: vscode.Uri, format: Format): Promise<void> {
+export async function convertMarkdown(uri: vscode.Uri, format: Format, isFolderConversion: boolean = false): Promise<void> {
   const cfg = vscode.workspace.getConfiguration('pandoc');
   const pandocPath = (cfg.get<string>('path') || '').trim() || 'pandoc';
 
@@ -12,14 +12,18 @@ export async function convertMarkdown(uri: vscode.Uri, format: Format): Promise<
 
   const input = uri.fsPath;
   const outputDirSetting = (cfg.get<string>('outputDir') || '').trim();
-  const outputDir = resolveOutputDir(outputDirSetting, input);
-  const baseName = path.basename(input, path.extname(input));
+  const outputDir = isFolderConversion 
+    ? resolveOutputDir(outputDirSetting, path.dirname(input))
+    : resolveOutputDir(outputDirSetting, input);
+  const baseName = isFolderConversion 
+    ? path.basename(path.dirname(input))
+    : path.basename(input, path.extname(input));
   const output = path.join(outputDir, `${baseName}.${format}`);
+  const args = buildArgsForFormat(cfg, format, input, output, uri, isFolderConversion);
+  const cwd = path.dirname(input);
+  await runProcess(pandocPath, args, cwd, isFolderConversion);
 
-  const args = buildArgsForFormat(cfg, format, input, output);
-  await runProcess(pandocPath, args, path.dirname(input));
-
-  await vscode.commands.executeCommand('vscode.open', vscode.Uri.file(output));
+  await vscode.env.openExternal(vscode.Uri.file(output));
   vscode.window.showInformationMessage(`Converted to ${format.toUpperCase()}: ${output}`);
 }
 
@@ -50,54 +54,33 @@ async function ensurePandocAvailable(pandocPath: string): Promise<void> {
   }
 }
 
-function buildArgsForFormat(cfg: vscode.WorkspaceConfiguration, fmt: Format, input: string, output: string): string[] {
-  const args: string[] = [];
+function buildArgsForFormat(cfg: vscode.WorkspaceConfiguration, fmt: Format, input: string, output: string, uri: vscode.Uri, isFolderConversion: boolean): string[] {
+  const defaultArgs = ["--from=markdown+hard_line_breaks"];
+  const customArgs = cfg.get<string[]>(`${fmt}.customArgs`) || [];
   
-  if (fmt === 'docx') {
-    const ref = (cfg.get<string>('docx.referenceDoc') || '').trim();
-    const number = !!cfg.get<boolean>('docx.numberSections');
-    const extra = cfg.get<string[]>('docx.customArgs') || [];
-    if (ref) {
-      args.push(`--reference-doc=${ref}`);
-    }
-    if (number) {
-      args.push('--number-sections');
-    }
-    args.push(...extra);
-  } else if (fmt === 'html') {
-    const standalone = cfg.get<boolean>('html.standalone', true);
-    const css = cfg.get<string[]>('html.css') || [];
-    const extra = cfg.get<string[]>('html.customArgs') || [];
-    if (standalone) {
-      args.push('--standalone');
-    }
-    for (const c of css) {
-      if (c && c.trim()) {
-        args.push(`--css=${c}`);
-      }
-    }
-    args.push(...extra);
-  } else if (fmt === 'pdf') {
-    const engine = (cfg.get<string>('pdf.pdfEngine') || '').trim();
-    const number = !!cfg.get<boolean>('pdf.numberSections');
-    const extra = cfg.get<string[]>('pdf.customArgs') || [];
-    if (engine) {
-      args.push('--pdf-engine', engine);
-    }
-    if (number) {
-      args.push('--number-sections');
-    }
-    args.push(...extra);
-  }
+  // Merge with single file or multiple files custom args based on conversion type
+  const contextSpecificArgs = isFolderConversion
+    ? cfg.get<string[]>(`${fmt}.multipleFilesCustomArgs`) || []
+    : cfg.get<string[]>(`${fmt}.singleFileCustomArgs`) || [];
   
-  args.push('-o', output);
-  args.push(input);
+  const mergedArgs = [...customArgs, ...contextSpecificArgs];
+  const resolvedArgs = mergedArgs.map(arg => resolveVariables(arg, uri));
+  const args: string[] = [...defaultArgs, ...resolvedArgs, '-o', output, input];
   return args;
 }
 
-function runProcess(cmd: string, args: string[], cwd?: string): Promise<void> {
+function resolveVariables(text: string, uri: vscode.Uri): string {
+  const folder = vscode.workspace.getWorkspaceFolder(uri);
+  const workspaceFolder = folder?.uri.fsPath || path.dirname(uri.fsPath);
+  
+  return text
+    .replace(/\$\{workspaceFolder\}/g, workspaceFolder)
+    .replace(/\$\{workspaceFolderBasename\}/g, path.basename(workspaceFolder));
+}
+
+function runProcess(cmd: string, args: string[], cwd?: string, useShell: boolean = false): Promise<void> {
   return new Promise((resolve, reject) => {
-    const child = spawn(cmd, args, { cwd, shell: false });
+    const child = spawn(cmd, args, { cwd, shell: useShell });
     let stderr = '';
     child.stderr.on('data', d => (stderr += d.toString()));
     child.on('error', err => reject(err));
