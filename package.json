@@ -2,7 +2,7 @@
   "name": "pandoc-vscode",
   "displayName": "Pandoc Extension for VSCode",
   "description": "Convert Markdown files to DOCX, HTML and PDF using Pandoc",
-  "version": "0.0.1",
+  "version": "0.2.0",
   "publisher": "AhmedYoussef",
   "icon": "pandoc.png",
   "repository": {
@@ -59,6 +59,11 @@
       {
         "command": "pandoc.convertFolderToPdf",
         "title": "Convert All Markdown to PDF",
+        "category": "Pandoc"
+      },
+      {
+        "command": "pandoc.generateSampleMarkdown",
+        "title": "Generate Sample Markdown",
         "category": "Pandoc"
       }
     ],
@@ -138,13 +143,35 @@
           "default": "",
           "description": "Default output directory. Leave empty to use the source file's directory. Relative paths are resolved against the workspace folder."
         },
-        "pandoc.docx.customArgs": {
+        "pandoc.filters": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "builtin:header-id-from-comment",
+            "builtin:html-br-to-linebreak",
+            "builtin:mermaid-filter",
+            "builtin:page-break"
+          ],
+          "description": "Ordered list of Lua filters to apply. Use 'builtin:<name>' for built-in filters, absolute paths, or '${workspaceFolder}/path/to/filter.lua' for custom filters. Order determines execution order. Remove entries to disable individual filters."
+        },
+        "pandoc.docx.commonArgs": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "default": [],
           "description": "Pandoc arguments for DOCX conversion. Example: ['--reference-doc=template.docx', '--number-sections']"
+        },
+        "pandoc.docx.customArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "(Deprecated — use commonArgs instead) Pandoc arguments for DOCX conversion.",
+          "deprecationMessage": "Use pandoc.docx.commonArgs instead."
         },
         "pandoc.docx.singleFileCustomArgs": {
           "type": "array",
@@ -162,13 +189,22 @@
           "default": [],
           "description": "Additional Pandoc arguments for DOCX conversion when converting multiple files in a folder. These are merged with customArgs."
         },
-        "pandoc.html.customArgs": {
+        "pandoc.html.commonArgs": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "default": [],
           "description": "Pandoc arguments for HTML conversion. Example: ['--standalone', '--css=style.css']"
+        },
+        "pandoc.html.customArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "(Deprecated — use commonArgs instead) Pandoc arguments for HTML conversion.",
+          "deprecationMessage": "Use pandoc.html.commonArgs instead."
         },
         "pandoc.html.singleFileCustomArgs": {
           "type": "array",
@@ -186,13 +222,22 @@
           "default": [],
           "description": "Additional Pandoc arguments for HTML conversion when converting multiple files in a folder. These are merged with customArgs."
         },
-        "pandoc.pdf.customArgs": {
+        "pandoc.pdf.commonArgs": {
           "type": "array",
           "items": {
             "type": "string"
           },
           "default": [],
           "description": "Pandoc arguments for PDF conversion. Example: ['--pdf-engine=xelatex', '--number-sections']"
+        },
+        "pandoc.pdf.customArgs": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [],
+          "description": "(Deprecated — use commonArgs instead) Pandoc arguments for PDF conversion.",
+          "deprecationMessage": "Use pandoc.pdf.commonArgs instead."
         },
         "pandoc.pdf.singleFileCustomArgs": {
           "type": "array",

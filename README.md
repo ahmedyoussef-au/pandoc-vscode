@@ -52,23 +52,44 @@ This extension contributes the following settings:
 * `pandoc.path`: Optional absolute path to the pandoc executable. If empty, 'pandoc' from PATH is used.
 * `pandoc.outputDir`: Default output directory. Leave empty to use the source file's directory. Relative paths are resolved against the workspace folder.
 
-### DOCX Conversion Settings
+### Filters
 
-* `pandoc.docx.customArgs`: Pandoc arguments for DOCX conversion (applies to all DOCX conversions)
-* `pandoc.docx.singleFileCustomArgs`: Additional arguments for DOCX conversion when converting a single file
-* `pandoc.docx.multipleFilesCustomArgs`: Additional arguments for DOCX conversion when converting multiple files in a folder
+* `pandoc.filters`: Ordered list of Lua filters to apply during conversion. Filters are executed in the order listed.
 
-### HTML Conversion Settings
+Built-in filters use the `builtin:` prefix. The defaults are:
 
-* `pandoc.html.customArgs`: Pandoc arguments for HTML conversion (applies to all HTML conversions)
-* `pandoc.html.singleFileCustomArgs`: Additional arguments for HTML conversion when converting a single file
-* `pandoc.html.multipleFilesCustomArgs`: Additional arguments for HTML conversion when converting multiple files in a folder
+| Filter | Description |
+|--------|-------------|
+| `builtin:header-id-from-comment` | Custom header IDs via `<!-- {#id} -->` comments and cross-reference linking |
+| `builtin:html-br-to-linebreak` | Converts `<br>` tags to native line breaks |
+| `builtin:mermaid-filter` | Renders Mermaid diagrams as images (requires [mermaid-cli](https://github.com/mermaid-js/mermaid-cli): `npm install -g @mermaid-js/mermaid-cli`) |
+| `builtin:page-break` | Converts `<!-- pagebreak -->` comments to page breaks |
 
-### PDF Conversion Settings
+To add your own filters, use absolute paths or `${workspaceFolder}`:
 
-* `pandoc.pdf.customArgs`: Pandoc arguments for PDF conversion (applies to all PDF conversions)
-* `pandoc.pdf.singleFileCustomArgs`: Additional arguments for PDF conversion when converting a single file
-* `pandoc.pdf.multipleFilesCustomArgs`: Additional arguments for PDF conversion when converting multiple files in a folder
+```json
+{
+  "pandoc.filters": [
+    "builtin:header-id-from-comment",
+    "builtin:page-break",
+    "${workspaceFolder}/my-filters/custom.lua"
+  ]
+}
+```
+
+To disable all filters, set to an empty array: `"pandoc.filters": []`
+
+> **Note:** The Mermaid filter generates a `mermaid-images/` directory for cached diagram images. Consider adding it to your `.gitignore`.
+
+### Conversion Arguments
+
+* `pandoc.{format}.commonArgs`: Pandoc arguments for the specified format (e.g. `--reference-doc`, `--toc`, `--css`).
+* `pandoc.{format}.singleFileCustomArgs`: Additional arguments when converting a single file. Merged with `commonArgs`.
+* `pandoc.{format}.multipleFilesCustomArgs`: Additional arguments when converting multiple files. Merged with `commonArgs`.
+
+Where `{format}` is `docx`, `html`, or `pdf`.
+
+> **Note:** `customArgs` is deprecated in favour of `commonArgs`. If both are defined, `commonArgs` takes precedence.
 
 ### Example Configuration
 
@@ -76,8 +97,14 @@ This extension contributes the following settings:
 {
   "pandoc.path": "/usr/local/bin/pandoc",
   "pandoc.outputDir": "${workspaceFolder}/output",
-  "pandoc.docx.customArgs": [
-    "--reference-doc=${workspaceFolder}/templates/template.docx",
+  "pandoc.filters": [
+    "builtin:header-id-from-comment",
+    "builtin:html-br-to-linebreak",
+    "builtin:mermaid-filter",
+    "builtin:page-break"
+  ],
+  "pandoc.docx.commonArgs": [
+    "--reference-doc=${workspaceFolder}/templates/template.docx"
   ],
   "pandoc.docx.singleFileCustomArgs": [
     "--resource-path=../images:./images"
@@ -89,6 +116,10 @@ This extension contributes the following settings:
   ]
 }
 ```
+
+### Generate a Sample Document
+
+Run **"Pandoc: Generate Sample Markdown"** from the Command Palette to create a sample file demonstrating all built-in filter features.
 
 ## Usage
 
@@ -134,6 +165,13 @@ This extension contributes the following settings:
 - **PDF** - Requires LaTeX installation (e.g., xelatex, pdflatex)
 
 ## Release Notes
+
+### 0.2.0
+
+- Built-in Lua filters auto-applied on every conversion (page breaks, header IDs, Mermaid diagrams, HTML line breaks)
+- New `pandoc.filters` setting for full control over filter selection and ordering
+- Renamed `customArgs` to `commonArgs` (old name still works)
+- New command: "Pandoc: Generate Sample Markdown"
 
 ### 0.0.1
 
