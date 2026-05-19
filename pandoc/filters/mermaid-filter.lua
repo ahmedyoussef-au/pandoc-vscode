@@ -31,7 +31,7 @@ High resolution / customization:
     DOCX embeds raster images; default 1x renders can look blurry. Increasing scale (2+) improves clarity in Word.
 
   Example pandoc invocation (shell):
-    MERMAID_SCALE=3 pandoc --lua-filter=docs/pandoc/filters/mermaid-filter.lua -o out.docx in.md
+    MERMAID_SCALE=3 pandoc -F docs/pandoc/filters/mermaid-filter.lua -o out.docx in.md
 
   Note:
     For SVG output (if desired for HTML/PDF), set format=svg; DOCX will rasterize via Pandoc if needed.
