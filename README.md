@@ -4,7 +4,7 @@ Convert Markdown files to DOCX, HTML and PDF using Pandoc directly from Visual S
 
 This extension integrates Pandoc into Visual Studio Code, allowing you to convert Markdown documents to various formats without leaving your editor.
 
-## ⚡ Key Features
+## Key Features
 
 - **Single file or folder conversion** - Convert one file or an entire folder
 - **Customizable options** - Configure Pandoc command-line arguments
@@ -42,6 +42,15 @@ Combine and convert all Markdown files in a folder into a single document:
 - **Linux**: `sudo apt-get install pandoc` (Debian/Ubuntu) or `sudo dnf install pandoc` (Fedora)
 
 Verify installation by running `pandoc --version` in your terminal.
+
+### Optional: Install Mermaid CLI for Diagram Support
+To render Mermaid diagrams in your documents, install the Mermaid CLI:
+
+Requires Node.js and npm to be installed first.
+
+```sh
+npm install -g @mermaid-js/mermaid-cli
+```
 
 ## Extension Settings
 
@@ -101,16 +110,17 @@ Where `{format}` is `docx`, `html`, or `pdf`.
     "builtin:header-id-from-comment",
     "builtin:html-br-to-linebreak",
     "builtin:mermaid-filter",
-    "builtin:page-break"
+    "builtin:page-break",
+    "${workspaceFolder}/my-project-filters/word-count.lua"
   ],
   "pandoc.docx.commonArgs": [
-    "--reference-doc=${workspaceFolder}/templates/template.docx"
+    "--reference-doc=${workspaceFolder}/my-project-templates/template.docx"
   ],
   "pandoc.docx.singleFileCustomArgs": [
     "--resource-path=../images:./images"
   ],
   "pandoc.docx.multipleFilesCustomArgs": [
-    "--reference-doc=${workspaceFolder}/templates/template-with-cover.docx",
+    "--reference-doc=${workspaceFolder}/my-project-templates/template-with-cover.docx",
     "--number-sections",
     "--toc"
   ]
@@ -176,10 +186,10 @@ Run **"Pandoc: Generate Sample Markdown"** from the Command Palette to create a 
 ### 0.0.1
 
 Initial release of Pandoc VSCode Extension:
-- ✅ Convert single Markdown files via right-click or Command Palette
-- ✅ Convert entire folders of Markdown files at once
-- ✅ Configurable output settings and Pandoc options
-- ✅ Support for all Pandoc output formats
+- Convert single Markdown files via right-click or Command Palette
+- Convert entire folders of Markdown files at once
+- Configurable output settings and Pandoc options
+- Support for all Pandoc output formats
 
 ---
 
