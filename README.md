@@ -9,7 +9,7 @@ This extension integrates Pandoc into Visual Studio Code, allowing you to conver
 - **Single file or folder conversion** - Convert one file or an entire folder
 - **Customizable options** - Configure Pandoc command-line arguments
 - **Multiple output formats** - HTML, PDF, DOCX, and more
-- **Smart output handling** - Converted files saved alongside source files
+- **Built-in filters** - Page breaks, custom header IDs, Mermaid diagrams, and HTML line breaks
 - **Fast processing** - Quick conversions powered by Pandoc
 
 ### Single File Conversion
@@ -30,6 +30,14 @@ Combine and convert all Markdown files in a folder into a single document:
   - `Pandoc: Convert All Markdown to DOCX`
   - `Pandoc: Convert All Markdown to HTML`
   - `Pandoc: Convert All Markdown to PDF`
+
+### Generate Sample Markdown
+
+Create a ready-to-use sample Markdown file that demonstrates all built-in filter features:
+
+- Open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+- Run `Pandoc: Generate Sample Markdown`
+- The sample file is created in your workspace
 
 ## Requirements
 
@@ -127,10 +135,6 @@ Where `{format}` is `docx`, `html`, or `pdf`.
 }
 ```
 
-### Generate a Sample Document
-
-Run **"Pandoc: Generate Sample Markdown"** from the Command Palette to create a sample file demonstrating all built-in filter features.
-
 ## Usage
 
 ### Convert a Single File
@@ -163,6 +167,14 @@ Run **"Pandoc: Generate Sample Markdown"** from the Command Palette to create a 
    - **Convert All Markdown to PDF**
 4. All Markdown files (`.md`) in the folder will be converted
 5. Converted files are saved with the same names in the new format
+
+### Generate Sample Markdown
+
+This sample demonstrates how the built-in filters work together and provides a practical formatting reference you can reuse to produce cleaner structure, more consistent styling, and higher-quality DOCX, HTML, and PDF output.
+
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+2. Run **Pandoc: Generate Sample Markdown**
+3. A sample file is created in your workspace demonstrating built-in filters
 
 ## Supported Conversions
 

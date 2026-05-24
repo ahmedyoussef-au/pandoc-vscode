@@ -116,7 +116,9 @@ To add a page break before a section, add the following line at the start of the
 
 To include Mermaid diagrams, add the diagram code block in the Markdown file.
 
-**Supported attributes:**
+Place an HTML comment immediately before the fence to pass render options to the Lua filter. GitHub and other viewers ignore the comment and render the plain `mermaid` fence normally.
+
+**Supported attributes (set in the comment):**
 
 - scale: Multiplies base diagram resolution.
 - width: Target width in pixels (forwarded to mmdc -w). Optional.
@@ -125,7 +127,8 @@ To include Mermaid diagrams, add the diagram code block in the Markdown file.
 
 ```
 
-    ```mermaid{scale=3 width=400 background=white format=png}
+    <!-- mermaid scale=3 width=400 background=white format=png -->
+    ```mermaid
     graph TD
         A[Start] --> B{Decision}
         B -->|Yes| C[Do something]
@@ -136,7 +139,8 @@ To include Mermaid diagrams, add the diagram code block in the Markdown file.
 
 ```
 
-```mermaid{scale=3 width=400 background=white format=png}
+<!-- mermaid scale=3 width=400 background=white format=png -->
+```mermaid
 graph TD
     A[Start] --> B{Decision}
     B -->|Yes| C[Do something]
