@@ -10,7 +10,6 @@ This extension integrates Pandoc into Visual Studio Code, allowing you to conver
 - **Customizable options** - Configure Pandoc command-line arguments
 - **Multiple output formats** - HTML, PDF, DOCX, and more
 - **Built-in filters** - Page breaks, custom header IDs, Mermaid diagrams, and HTML line breaks
-- **Fast processing** - Quick conversions powered by Pandoc
 
 ### Single File Conversion
 

@@ -127,7 +127,7 @@ Place an HTML comment immediately before the fence to pass render options to the
 
 ```
 
-    <!-- mermaid scale=3 width=400 background=white format=png -->
+    <!-- mermaid scale=3 width=300 background=white format=png -->
     ```mermaid
     graph TD
         A[Start] --> B{Decision}
@@ -139,7 +139,7 @@ Place an HTML comment immediately before the fence to pass render options to the
 
 ```
 
-<!-- mermaid scale=3 width=400 background=white format=png -->
+<!-- mermaid scale=3 width=300 background=white format=png -->
 ```mermaid
 graph TD
     A[Start] --> B{Decision}
