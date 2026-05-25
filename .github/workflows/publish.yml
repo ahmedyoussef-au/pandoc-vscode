@@ -8,6 +8,10 @@ on:
         type: boolean
         default: false
 
+env:
+  PUBLISHER: AhmedYoussef
+  EXTENSION: pandoc-vscode
+
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -34,14 +38,43 @@ jobs:
           name: pandoc-vscode-vsix
           path: pandoc-vscode.vsix
 
+      - name: Read version
+        id: ver
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
+      - name: Check VS Code Marketplace
+        id: check_vsce
+        run: |
+          if npx -y @vscode/vsce show "${PUBLISHER}.${EXTENSION}" --json \
+             | jq -e --arg v "${{ steps.ver.outputs.version }}" '.versions[].version | select(. == $v)' >/dev/null; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Check Open VSX
+        id: check_ovsx
+        run: |
+          code=$(curl -s -o /dev/null -w "%{http_code}" \
+            "https://open-vsx.org/api/${PUBLISHER}/${EXTENSION}/${{ steps.ver.outputs.version }}")
+          echo "exists=$([ "$code" = "200" ] && echo true || echo false)" >> $GITHUB_OUTPUT
+
       - name: Publish to VS Code Marketplace
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && steps.check_vsce.outputs.exists == 'false' }}
         run: npx @vscode/vsce publish --packagePath pandoc-vscode.vsix
         env:
           VSCE_PAT: ${{ secrets.VSCE_PAT }}
 
+      - name: Skip VS Code Marketplace (already published)
+        if: ${{ !inputs.dry_run && steps.check_vsce.outputs.exists == 'true' }}
+        run: echo "Version ${{ steps.ver.outputs.version }} already on VS Code Marketplace — skipping."
+
       - name: Publish to Open VSX Registry
-        if: ${{ !inputs.dry_run }}
+        if: ${{ !inputs.dry_run && steps.check_ovsx.outputs.exists == 'false' }}
         run: npx ovsx publish pandoc-vscode.vsix
         env:
           OVSX_PAT: ${{ secrets.OVSX_PAT }}
+
+      - name: Skip Open VSX (already published)
+        if: ${{ !inputs.dry_run && steps.check_ovsx.outputs.exists == 'true' }}
+        run: echo "Version ${{ steps.ver.outputs.version }} already on Open VSX — skipping."
