@@ -4,3 +4,5 @@ dist
 .vscode-test/
 *.log
 .DS_Store
+
+mermaid-images/

@@ -4,13 +4,12 @@ Convert Markdown files to DOCX, HTML and PDF using Pandoc directly from Visual S
 
 This extension integrates Pandoc into Visual Studio Code, allowing you to convert Markdown documents to various formats without leaving your editor.
 
-## ⚡ Key Features
+## Key Features
 
 - **Single file or folder conversion** - Convert one file or an entire folder
 - **Customizable options** - Configure Pandoc command-line arguments
 - **Multiple output formats** - HTML, PDF, DOCX, and more
-- **Smart output handling** - Converted files saved alongside source files
-- **Fast processing** - Quick conversions powered by Pandoc
+- **Built-in filters** - Page breaks, custom header IDs, Mermaid diagrams, and HTML line breaks
 
 ### Single File Conversion
 
@@ -31,6 +30,14 @@ Combine and convert all Markdown files in a folder into a single document:
   - `Pandoc: Convert All Markdown to HTML`
   - `Pandoc: Convert All Markdown to PDF`
 
+### Generate Sample Markdown
+
+Create a ready-to-use sample Markdown file that demonstrates all built-in filter features:
+
+- Open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+- Run `Pandoc: Generate Sample Markdown`
+- The sample file is created in your workspace
+
 ## Requirements
 
 **Pandoc must be installed on your system** before using this extension.
@@ -43,6 +50,15 @@ Combine and convert all Markdown files in a folder into a single document:
 
 Verify installation by running `pandoc --version` in your terminal.
 
+### Optional: Install Mermaid CLI for Diagram Support
+To render Mermaid diagrams in your documents, install the Mermaid CLI:
+
+Requires Node.js and npm to be installed first.
+
+```sh
+npm install -g @mermaid-js/mermaid-cli
+```
+
 ## Extension Settings
 
 This extension contributes the following settings:
@@ -52,23 +68,44 @@ This extension contributes the following settings:
 * `pandoc.path`: Optional absolute path to the pandoc executable. If empty, 'pandoc' from PATH is used.
 * `pandoc.outputDir`: Default output directory. Leave empty to use the source file's directory. Relative paths are resolved against the workspace folder.
 
-### DOCX Conversion Settings
+### Filters
 
-* `pandoc.docx.customArgs`: Pandoc arguments for DOCX conversion (applies to all DOCX conversions)
-* `pandoc.docx.singleFileCustomArgs`: Additional arguments for DOCX conversion when converting a single file
-* `pandoc.docx.multipleFilesCustomArgs`: Additional arguments for DOCX conversion when converting multiple files in a folder
+* `pandoc.filters`: Ordered list of Lua filters to apply during conversion. Filters are executed in the order listed.
 
-### HTML Conversion Settings
+Built-in filters use the `builtin:` prefix. The defaults are:
 
-* `pandoc.html.customArgs`: Pandoc arguments for HTML conversion (applies to all HTML conversions)
-* `pandoc.html.singleFileCustomArgs`: Additional arguments for HTML conversion when converting a single file
-* `pandoc.html.multipleFilesCustomArgs`: Additional arguments for HTML conversion when converting multiple files in a folder
+| Filter | Description |
+|--------|-------------|
+| `builtin:header-id-from-comment` | Custom header IDs via `<!-- {#id} -->` comments and cross-reference linking |
+| `builtin:html-br-to-linebreak` | Converts `<br>` tags to native line breaks |
+| `builtin:mermaid-filter` | Renders Mermaid diagrams as images (requires [mermaid-cli](https://github.com/mermaid-js/mermaid-cli): `npm install -g @mermaid-js/mermaid-cli`) |
+| `builtin:page-break` | Converts `<!-- pagebreak -->` comments to page breaks |
 
-### PDF Conversion Settings
+To add your own filters, use absolute paths or `${workspaceFolder}`:
 
-* `pandoc.pdf.customArgs`: Pandoc arguments for PDF conversion (applies to all PDF conversions)
-* `pandoc.pdf.singleFileCustomArgs`: Additional arguments for PDF conversion when converting a single file
-* `pandoc.pdf.multipleFilesCustomArgs`: Additional arguments for PDF conversion when converting multiple files in a folder
+```json
+{
+  "pandoc.filters": [
+    "builtin:header-id-from-comment",
+    "builtin:page-break",
+    "${workspaceFolder}/my-filters/custom.lua"
+  ]
+}
+```
+
+To disable all filters, set to an empty array: `"pandoc.filters": []`
+
+> **Note:** The Mermaid filter generates a `mermaid-images/` directory for cached diagram images. Consider adding it to your `.gitignore`.
+
+### Conversion Arguments
+
+* `pandoc.{format}.commonArgs`: Pandoc arguments for the specified format (e.g. `--reference-doc`, `--toc`, `--css`).
+* `pandoc.{format}.singleFileCustomArgs`: Additional arguments when converting a single file. Merged with `commonArgs`.
+* `pandoc.{format}.multipleFilesCustomArgs`: Additional arguments when converting multiple files. Merged with `commonArgs`.
+
+Where `{format}` is `docx`, `html`, or `pdf`.
+
+> **Note:** `customArgs` is deprecated in favour of `commonArgs`. If both are defined, `commonArgs` takes precedence.
 
 ### Example Configuration
 
@@ -76,14 +113,21 @@ This extension contributes the following settings:
 {
   "pandoc.path": "/usr/local/bin/pandoc",
   "pandoc.outputDir": "${workspaceFolder}/output",
-  "pandoc.docx.customArgs": [
-    "--reference-doc=${workspaceFolder}/templates/template.docx",
+  "pandoc.filters": [
+    "builtin:header-id-from-comment",
+    "builtin:html-br-to-linebreak",
+    "builtin:mermaid-filter",
+    "builtin:page-break",
+    "${workspaceFolder}/my-project-filters/word-count.lua"
+  ],
+  "pandoc.docx.commonArgs": [
+    "--reference-doc=${workspaceFolder}/my-project-templates/template.docx"
   ],
   "pandoc.docx.singleFileCustomArgs": [
     "--resource-path=../images:./images"
   ],
   "pandoc.docx.multipleFilesCustomArgs": [
-    "--reference-doc=${workspaceFolder}/templates/template-with-cover.docx",
+    "--reference-doc=${workspaceFolder}/my-project-templates/template-with-cover.docx",
     "--number-sections",
     "--toc"
   ]
@@ -123,6 +167,14 @@ This extension contributes the following settings:
 4. All Markdown files (`.md`) in the folder will be converted
 5. Converted files are saved with the same names in the new format
 
+### Generate Sample Markdown
+
+This sample demonstrates how the built-in filters work together and provides a practical formatting reference you can reuse to produce cleaner structure, more consistent styling, and higher-quality DOCX, HTML, and PDF output.
+
+1. Press `Ctrl+Shift+P` (or `Cmd+Shift+P` on macOS)
+2. Run **Pandoc: Generate Sample Markdown**
+3. A sample file is created in your workspace demonstrating built-in filters
+
 ## Supported Conversions
 
 ### Input Formats
@@ -135,13 +187,20 @@ This extension contributes the following settings:
 
 ## Release Notes
 
+### 0.2.0
+
+- Built-in Lua filters auto-applied on every conversion (page breaks, header IDs, Mermaid diagrams, HTML line breaks)
+- New `pandoc.filters` setting for full control over filter selection and ordering
+- Renamed `customArgs` to `commonArgs` (old name still works)
+- New command: "Pandoc: Generate Sample Markdown"
+
 ### 0.0.1
 
 Initial release of Pandoc VSCode Extension:
-- ✅ Convert single Markdown files via right-click or Command Palette
-- ✅ Convert entire folders of Markdown files at once
-- ✅ Configurable output settings and Pandoc options
-- ✅ Support for all Pandoc output formats
+- Convert single Markdown files via right-click or Command Palette
+- Convert entire folders of Markdown files at once
+- Configurable output settings and Pandoc options
+- Support for all Pandoc output formats
 
 ---
 

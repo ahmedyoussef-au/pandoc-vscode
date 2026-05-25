@@ -1,0 +1,47 @@
+name: Publish Extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Package only — do not publish"
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - run: npm ci
+
+      - run: npm run compile
+
+      - name: Package extension
+        run: npx @vscode/vsce package --out pandoc-vscode.vsix
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pandoc-vscode-vsix
+          path: pandoc-vscode.vsix
+
+      - name: Publish to VS Code Marketplace
+        if: ${{ !inputs.dry_run }}
+        run: npx @vscode/vsce publish --packagePath pandoc-vscode.vsix
+        env:
+          VSCE_PAT: ${{ secrets.VSCE_PAT }}
+
+      - name: Publish to Open VSX Registry
+        if: ${{ !inputs.dry_run }}
+        run: npx ovsx publish pandoc-vscode.vsix
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}

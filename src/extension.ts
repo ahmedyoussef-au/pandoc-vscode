@@ -4,6 +4,8 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export function activate(context: vscode.ExtensionContext) {
+  const extensionPath = context.extensionUri.fsPath;
+
   const registerActiveFile = (cmd: string, fmt: 'docx' | 'html' | 'pdf') =>
     vscode.commands.registerCommand(cmd, async (resource?: vscode.Uri) => {
       try {
@@ -11,7 +13,7 @@ export function activate(context: vscode.ExtensionContext) {
         if (!uri) {
           return;
         }
-        await convertMarkdown(uri, fmt);
+        await convertMarkdown(uri, fmt, false, extensionPath);
       } catch (err: any) {
         vscode.window.showErrorMessage(err?.message || String(err));
       }
@@ -40,11 +42,27 @@ export function activate(context: vscode.ExtensionContext) {
         // Create a glob pattern URI for the folder
         const globPattern = path.join(folderUri.fsPath, '*.md');
         const patternUri = vscode.Uri.file(globPattern);
-        await convertMarkdown(patternUri, fmt, true);
+        await convertMarkdown(patternUri, fmt, true, extensionPath);
       } catch (err: any) {
         vscode.window.showErrorMessage(err?.message || String(err));
       }
     });
+
+  const generateSample = vscode.commands.registerCommand('pandoc.generateSampleMarkdown', async () => {
+    const folder = vscode.workspace.workspaceFolders?.[0];
+    if (!folder) {
+      vscode.window.showWarningMessage('Please open a workspace folder first.');
+      return;
+    }
+
+    const sampleSource = path.join(extensionPath, 'samples', 'pandoc-sample.md');
+    const filePath = path.join(folder.uri.fsPath, 'pandoc-sample.md');
+    const content = await fs.promises.readFile(sampleSource, 'utf8');
+
+    await fs.promises.writeFile(filePath, content, 'utf8');
+    const doc = await vscode.workspace.openTextDocument(filePath);
+    await vscode.window.showTextDocument(doc);
+  });
 
   context.subscriptions.push(
     registerActiveFile('pandoc.convertToDocx', 'docx'),
@@ -52,7 +70,8 @@ export function activate(context: vscode.ExtensionContext) {
     registerActiveFile('pandoc.convertToPdf', 'pdf'),
     registerFolder('pandoc.convertFolderToDocx', 'docx'),
     registerFolder('pandoc.convertFolderToHtml', 'html'),
-    registerFolder('pandoc.convertFolderToPdf', 'pdf')
+    registerFolder('pandoc.convertFolderToPdf', 'pdf'),
+    generateSample
   );
 }
 
