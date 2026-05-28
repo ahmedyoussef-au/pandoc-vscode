@@ -2,7 +2,7 @@
   "name": "pandoc-vscode",
   "displayName": "Pandoc Extension for VSCode",
   "description": "Convert Markdown files to DOCX, HTML and PDF using Pandoc",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "publisher": "AhmedYoussef",
   "icon": "pandoc.png",
   "repository": {

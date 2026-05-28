@@ -54,11 +54,24 @@ Add these to your VS Code settings (`settings.json`):
     "--toc"
   ],
   "pandoc.docx.multipleFilesCustomArgs": [
-      "--reference-doc=${workspaceFolder}/my-project-templates/template_with_cover_page.docx",
-      "--number-sections"
+    "--reference-doc=${workspaceFolder}/my-project-templates/cover.docx",
+    "--number-sections"
+  ],
+  "pandoc.html.commonArgs": [
+    "--standalone",
+    "--embed-resources"
+  ],
+  "pandoc.pdf.commonArgs": [
+    "--pdf-engine=xelatex"
   ]
 }
 ```
+
+### Format-Specific Notes
+
+- **HTML** — Without `--standalone --embed-resources`, Pandoc emits an unstyled HTML fragment with no `<html>`/`<head>` wrapper, and Mermaid images are referenced by relative path (so moving the `.html` file breaks them). The args above produce a single self-contained file with syntax-highlighting CSS and base64-inlined images.
+- **PDF** — Requires a TeX install (MacTeX or TinyTeX on macOS, MiKTeX on Windows). Use `--pdf-engine=xelatex` or `lualatex` to handle Unicode characters like the `•` bullets in the multi-line table example below — the default `pdflatex` will fail on them.
+
 ---
 
 ### Conversion Arguments <!-- {#conversion-arguments} -->
@@ -125,19 +138,19 @@ Place an HTML comment immediately before the fence to pass render options to the
 - background: Background color or 'transparent'. Default MERMAID_BACKGROUND or 'transparent'.
 - format: png | svg | pdf | webp (limited by mermaid-cli support). Default MERMAID_FORMAT or png.
 
+````markdown
+<!-- mermaid scale=3 width=300 background=white format=png -->
+```mermaid
+graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Do something]
+    B -->|No| D[Do something else]
+    C --> E[End]
+    D --> E
 ```
+````
 
-    <!-- mermaid scale=3 width=300 background=white format=png -->
-    ```mermaid
-    graph TD
-        A[Start] --> B{Decision}
-        B -->|Yes| C[Do something]
-        B -->|No| D[Do something else]
-        C --> E[End]
-        D --> E
-    ```
-
-```
+The rendered output:
 
 <!-- mermaid scale=3 width=300 background=white format=png -->
 ```mermaid

@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.1]
+
+- Documented LaTeX engine prerequisite for PDF output, including install commands per OS and the VS Code restart needed for `PATH` updates
+
 ## [0.2.0]
 
 - Built-in Lua filters are now auto-applied on every conversion (page breaks, header IDs, Mermaid diagrams, HTML line breaks)

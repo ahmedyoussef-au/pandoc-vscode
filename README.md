@@ -59,6 +59,23 @@ Requires Node.js and npm to be installed first.
 npm install -g @mermaid-js/mermaid-cli
 ```
 
+### Required for PDF Output: Install a LaTeX Engine
+
+Pandoc does not generate PDFs directly — it hands off to a LaTeX engine (`xelatex` is recommended for Unicode support). Install one of the following:
+
+- **macOS** — [MacTeX](https://tug.org/mactex/) (full, ~4 GB) or BasicTeX (minimal, ~100 MB):
+  ```sh
+  brew install --cask mactex-no-gui    # full
+  # or
+  brew install --cask basictex         # minimal
+  ```
+- **Windows** — [MiKTeX](https://miktex.org/download) or [TeX Live](https://tug.org/texlive/)
+- **Linux** — `sudo apt-get install texlive-xetex` (Debian/Ubuntu) or `sudo dnf install texlive-xetex` (Fedora)
+
+Verify with `xelatex --version`. After installing, **fully quit and relaunch VS Code** so the extension picks up the updated `PATH` — without this you may see a `xelatex: createProcess: find_executable: failed` error even though `xelatex` works in your terminal.
+
+If you need a non-LaTeX path, Pandoc also supports `--pdf-engine=wkhtmltopdf`, `weasyprint`, or `typst` — set this via `pandoc.pdf.commonArgs`.
+
 ## Extension Settings
 
 This extension contributes the following settings:
@@ -130,9 +147,21 @@ Where `{format}` is `docx`, `html`, or `pdf`.
     "--reference-doc=${workspaceFolder}/my-project-templates/template-with-cover.docx",
     "--number-sections",
     "--toc"
+  ],
+  "pandoc.html.commonArgs": [
+    "--standalone",
+    "--embed-resources"
+  ],
+  "pandoc.pdf.commonArgs": [
+    "--pdf-engine=xelatex"
   ]
 }
 ```
+
+### Format-Specific Notes
+
+- **HTML** — Without `--standalone --embed-resources`, Pandoc emits an unstyled HTML fragment with no `<html>`/`<head>` wrapper, and Mermaid images are referenced by relative path (so moving the `.html` file breaks them). Adding these args produces a single self-contained file with syntax-highlighting CSS and base64-inlined images.
+- **PDF** — Requires a TeX install (MacTeX or TinyTeX on macOS, MiKTeX on Windows). Use `--pdf-engine=xelatex` or `lualatex` to handle Unicode characters; the default `pdflatex` will fail on common symbols like `•`.
 
 ## Usage
 
@@ -186,6 +215,10 @@ This sample demonstrates how the built-in filters work together and provides a p
 - **PDF** - Requires LaTeX installation (e.g., xelatex, pdflatex)
 
 ## Release Notes
+
+### 0.2.1
+
+- Documented LaTeX engine prerequisite for PDF output, including install commands per OS and the VS Code restart needed for `PATH` updates
 
 ### 0.2.0
 
