@@ -55,7 +55,7 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    const sampleSource = path.join(extensionPath, 'samples', 'pandoc-sample.md');
+    const sampleSource = path.join(extensionPath, 'assets', 'samples', 'pandoc-sample.md');
     const filePath = path.join(folder.uri.fsPath, 'pandoc-sample.md');
     const content = await fs.promises.readFile(sampleSource, 'utf8');
 
