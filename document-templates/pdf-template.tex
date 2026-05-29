@@ -31,6 +31,18 @@ $if(cancel)$
 \usepackage{cancel}
 $endif$
 
+%% Pandoc loads these conditionally (only when the document contains code
+%% blocks or tables), but this template's custom styling below uses their
+%% macros unconditionally — \DefineVerbatimEnvironment (fancyvrb) and
+%% \heavyrulewidth (booktabs). Load them up front so a document WITHOUT code
+%% or tables doesn't crash with "Undefined control sequence". All ship with
+%% BasicTeX/TinyTeX, and \usepackage is idempotent so pandoc re-requesting
+%% them later is a no-op.
+\usepackage{fancyvrb}
+\usepackage{longtable}
+\usepackage{booktabs}
+\usepackage{array}
+
 %% ══════════════════════════════════════════════════════════════════════════
 %% Modern Styling (base LaTeX only — no extra packages required)
 %% ══════════════════════════════════════════════════════════════════════════
@@ -232,7 +244,17 @@ $endif$
     }%
   }%
 }
-\renewenvironment{Shaded}{\par\vspace{4pt}}{\par\vspace{4pt}}
+%% pandoc only defines the Shaded environment via common.latex when the
+%% document actually contains highlighted code. For a document without code
+%% blocks it never exists, so \renewenvironment would fail with "Environment
+%% Shaded undefined". Define-or-redefine: create it if absent, otherwise renew.
+\makeatletter
+\@ifundefined{Shaded}{%
+  \newenvironment{Shaded}{\par\vspace{4pt}}{\par\vspace{4pt}}%
+}{%
+  \renewenvironment{Shaded}{\par\vspace{4pt}}{\par\vspace{4pt}}%
+}
+\makeatother
 
 %% ── Better horizontal divider ──
 %% Pandoc emits HRs as \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}.
