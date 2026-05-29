@@ -1,0 +1,340 @@
+$document-metadata.latex()$
+$passoptions.latex()$
+\documentclass[
+$for(babel-otherlangs)$
+  $babel-otherlangs$,
+$endfor$
+$if(babel-lang)$
+  $babel-lang$,
+$endif$
+$if(fontsize)$
+  $fontsize$,
+$endif$
+$if(papersize)$
+  $papersize$paper,
+$endif$
+$for(classoption)$
+  $classoption$$sep$,
+$endfor$
+]{$documentclass$}
+$if(beamerarticle)$
+\usepackage{beamerarticle} % needs to be loaded first
+$endif$
+\usepackage{xcolor}
+$if(geometry)$
+\usepackage[$for(geometry)$$geometry$$sep$,$endfor$]{geometry}
+$else$
+\usepackage[left=2.8cm,right=2.8cm,top=3.2cm,bottom=3.2cm,headheight=14pt]{geometry}
+$endif$
+\usepackage{amsmath,amssymb}
+$if(cancel)$
+\usepackage{cancel}
+$endif$
+
+%% ══════════════════════════════════════════════════════════════════════════
+%% Modern Styling (base LaTeX only — no extra packages required)
+%% ══════════════════════════════════════════════════════════════════════════
+
+%% System-font cascade via fontspec (ships with XeLaTeX/LuaLaTeX in every TeX
+%% distribution). Each role tries a designed-for-screen font first, falling back
+%% through fonts guaranteed on macOS, Windows, and most Linux systems. If nothing
+%% matches, fontspec keeps Latin Modern from the document class — never errors.
+\usepackage{fontspec}
+
+$if(mainfont)$
+$else$
+%% Body font — humanist sans, modern and clean. Cascade through fonts preinstalled
+%% on macOS or Windows so no user install is needed:
+%%   Avenir Next (macOS)  →  Calibri (Windows)  →  Helvetica Neue (macOS)
+%%   →  Helvetica (macOS)  →  Arial (both)
+\IfFontExistsTF{Avenir Next}{%
+  \setmainfont{Avenir Next}[Ligatures=TeX]%
+}{\IfFontExistsTF{Calibri}{%
+  \setmainfont{Calibri}[Ligatures=TeX]%
+}{\IfFontExistsTF{Helvetica Neue}{%
+  \setmainfont{Helvetica Neue}[Ligatures=TeX]%
+}{\IfFontExistsTF{Helvetica}{%
+  \setmainfont{Helvetica}[Ligatures=TeX]%
+}{\IfFontExistsTF{Arial}{%
+  \setmainfont{Arial}[Ligatures=TeX]%
+}{}}}}}
+
+%% Serif fallback (used only if a document explicitly switches to \rmfamily):
+%%   Charter (macOS)  →  Georgia (both)  →  Cambria (Windows)  →  Times New Roman
+\IfFontExistsTF{Charter}{%
+  \setromanfont{Charter}[Ligatures=TeX,Numbers={OldStyle,Proportional}]%
+}{\IfFontExistsTF{Georgia}{%
+  \setromanfont{Georgia}[Ligatures=TeX]%
+}{\IfFontExistsTF{Cambria}{%
+  \setromanfont{Cambria}[Ligatures=TeX]%
+}{\IfFontExistsTF{Times New Roman}{%
+  \setromanfont{Times New Roman}[Ligatures=TeX]%
+}{}}}}
+$endif$
+
+$if(monofont)$
+$else$
+%% Mono cascade — all preinstalled on macOS or Windows:
+%%   SF Mono (macOS recent)  →  Menlo (macOS)  →  Cascadia Code (Win 11)
+%%   →  Consolas (Windows)  →  Courier New (both)
+%% MatchLowercase keeps x-heights aligned with the body font.
+\IfFontExistsTF{SF Mono}{%
+  \setmonofont{SF Mono}[Scale=MatchLowercase]%
+}{\IfFontExistsTF{Menlo}{%
+  \setmonofont{Menlo}[Scale=MatchLowercase]%
+}{\IfFontExistsTF{Cascadia Code}{%
+  \setmonofont{Cascadia Code}[Scale=MatchLowercase]%
+}{\IfFontExistsTF{Consolas}{%
+  \setmonofont{Consolas}[Scale=MatchLowercase]%
+}{\IfFontExistsTF{Courier New}{%
+  \setmonofont{Courier New}[Scale=MatchLowercase]%
+}{}}}}}
+$endif$
+
+%% Accent colours (xcolor already loaded above)
+\definecolor{accent}{HTML}{4F46E5}
+\definecolor{muted}{HTML}{718096}
+\definecolor{rulecol}{HTML}{CBD5E0}
+
+%% Code colours: a soft fill for the code background, an accent stripe on the
+%% left, and a faint tint for inline \texttt. The Highlighting environment uses
+%% fancyvrb's per-line formatting hook to paint each line — page-breakable, with
+%% no `framed` / `mdframed` / `tcolorbox` dependency.
+\definecolor{shadecolor}{HTML}{F4F4F8}      % soft neutral grey for code background
+\definecolor{codeborder}{HTML}{C7D2FE}      % light accent for the left stripe
+\definecolor{inlinecodebg}{HTML}{F0F0F5}    % background tint for inline code
+
+%% Inline code: give \texttt a faint rounded background.
+\let\oldtexttt\texttt
+\renewcommand{\texttt}[1]{{\setlength{\fboxsep}{1.5pt}\colorbox{inlinecodebg}{\oldtexttt{#1}}}}
+
+%% Paragraph spacing instead of indent
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt plus 2pt minus 1pt}
+
+%% Heading colours via @startsection (no titlesec needed)
+\makeatletter
+\renewcommand\section{\@startsection{section}{1}{\z@}%
+  {-1.8em \@plus -0.5ex \@minus -0.2ex}%
+  {0.6em \@plus 0.2ex}%
+  {\Large\bfseries\color{accent}}}
+\renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
+  {-1.3em \@plus -0.4ex \@minus -0.2ex}%
+  {0.4em \@plus 0.2ex}%
+  {\large\bfseries}}
+\renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
+  {-1em \@plus -0.3ex \@minus -0.2ex}%
+  {0.2em \@plus 0.1ex}%
+  {\normalsize\bfseries\color{muted}}}
+
+%% Title block (no titling package needed)
+\renewcommand{\maketitle}{%
+  \begin{center}%
+    \vspace*{0.5em}%
+    {\Huge\bfseries\@title\par}%
+    \vspace{0.4em}%
+    {\color{accent}\rule{0.25\linewidth}{2pt}\par}%
+    \vspace{0.3em}%
+    {\large\color{muted}\@author\par}%
+    {\small\color{muted}\@date\par}%
+    \vspace{0.5em}%
+  \end{center}%
+}
+\makeatother
+
+%% Header & footer (fancyhdr ships with BasicTeX)
+\usepackage{fancyhdr}
+\pagestyle{fancy}
+\fancyhf{}
+\renewcommand{\headrulewidth}{0.4pt}
+$if(title)$
+\fancyhead[L]{\small\color{muted}\textit{$title$}}
+$endif$
+\fancyhead[R]{\small\color{muted}\thepage}
+\fancypagestyle{plain}{%
+  \fancyhf{}%
+  \renewcommand{\headrulewidth}{0pt}%
+  \fancyfoot[C]{\small\color{muted}\thepage}%
+}
+%% ══════════════════════════════════════════════════════════════════════════
+
+$--
+$-- section numbering
+$--
+$if(numbersections)$
+\setcounter{secnumdepth}{$if(secnumdepth)$$secnumdepth$$else$5$endif$}
+$else$
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+$endif$
+$fonts.latex()$
+$font-settings.latex()$
+%% Pandoc's syntax-highlighting macros load the `framed` package, which is NOT
+%% part of BasicTeX/TinyTeX. Pretend framed is already loaded so the \usepackage
+%% becomes a no-op; we replace its `snugshade` env with a fancyvrb-based version
+%% that needs nothing beyond what BasicTeX ships. Keeps the template fully self-
+%% contained — no extra packages to install.
+\IfFileExists{framed.sty}{}{%
+  \expandafter\def\csname ver@framed.sty\endcsname{0000/00/00 v0 stub}%
+}
+
+$common.latex()$
+
+%% ── Code-block styling (no external dependencies) ──
+%% Pandoc wraps highlighted code as \begin{Shaded}\begin{Highlighting}…
+%% \end{Highlighting}\end{Shaded}, where Highlighting is a fancyvrb Verbatim
+%% (fancyvrb ships with BasicTeX). We redefine \FancyVerbFormatLine so each line
+%% is painted with a \colorbox — this gives a true page-breakable background
+%% without needing framed/mdframed/tcolorbox. The left accent stripe is layered
+%% on via fancyvrb's frame=leftline.
+\DefineVerbatimEnvironment{Highlighting}{Verbatim}{%
+  commandchars=\\\{\},%
+  frame=leftline,%
+  framerule=2.5pt,%
+  rulecolor=\color{codeborder},%
+  framesep=8pt,%
+  xleftmargin=2pt,%
+  fontsize=\small,%
+  formatcom=\HighlightingFormatLine%
+}
+%% Per-line background: each line is wrapped in a \colorbox so the fill flows
+%% across page breaks. Setting \fboxsep=0pt eliminates the vertical gap between
+%% adjacent boxes; a stretched \strut gives the line its full height so the
+%% boxes touch and form a continuous fill.
+\newcommand{\HighlightingFormatLine}{%
+  \setlength{\fboxsep}{0pt}%
+  \def\FancyVerbFormatLine##1{%
+    \colorbox{shadecolor}{%
+      \makebox[\dimexpr\linewidth-12pt][l]{\rule[-3pt]{0pt}{14pt}\hspace{6pt}##1\hspace{6pt}}%
+    }%
+  }%
+}
+\renewenvironment{Shaded}{\par\vspace{4pt}}{\par\vspace{4pt}}
+
+%% ── Better horizontal divider ──
+%% Pandoc emits HRs as \begin{center}\rule{0.5\linewidth}{0.5pt}\end{center}.
+%% Redefining \rule globally would affect other uses, so we patch it only when it
+%% looks like pandoc's HR signature by wrapping in a smarter macro.
+\let\pandocOriginalRule\rule
+\renewcommand{\rule}[3][0pt]{%
+  \ifdim#2=0.5\linewidth\relax
+    {\centering
+     \color{rulecol}\pandocOriginalRule[#1]{0.18\linewidth}{0.6pt}%
+     \hspace{0.6em}\raisebox{-0.18ex}{\textcolor{accent}{\ensuremath{\bullet}}}\hspace{0.6em}%
+     \color{rulecol}\pandocOriginalRule[#1]{0.18\linewidth}{0.6pt}\par}%
+  \else
+    \pandocOriginalRule[#1]{#2}{#3}%
+  \fi
+}
+
+$for(header-includes)$
+$header-includes$
+$endfor$
+$after-header-includes.latex()$
+$hypersetup.latex()$
+%% Default coloured hyperlinks (overridable via YAML colorlinks/linkcolor)
+$if(colorlinks)$
+$else$
+\hypersetup{colorlinks=true,linkcolor=accent,urlcolor=accent,citecolor=accent,filecolor=accent}
+$endif$
+$if(pdf-trailer-id)$
+
+\ifXeTeX
+\special{pdf:trailerid [ $pdf-trailer-id$ ]}
+\fi
+\ifPDFTeX
+\pdftrailerid{}
+\pdftrailer{/ID [ $pdf-trailer-id$ ]}
+\fi
+\ifLuaTeX
+\pdfvariable trailerid {[ $pdf-trailer-id$ ]}
+\fi
+$endif$
+
+$if(title)$
+\title{$title$$if(thanks)$\thanks{$thanks$}$endif$}
+$endif$
+$if(subtitle)$
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{$subtitle$}
+$endif$
+\author{$for(author)$$author$$sep$ \and $endfor$}
+\date{$date$}
+
+\begin{document}
+$if(has-frontmatter)$
+\frontmatter
+$endif$
+$if(title)$
+\maketitle
+$if(abstract)$
+\begin{abstract}
+$abstract$
+\end{abstract}
+$endif$
+$endif$
+
+$for(include-before)$
+$include-before$
+
+$endfor$
+$if(toc)$
+$if(toc-title)$
+\renewcommand*\contentsname{$toc-title$}
+$endif$
+{
+$if(colorlinks)$
+$if(toccolor)$
+\hypersetup{linkcolor=$toccolor$}
+$endif$
+$endif$
+\setcounter{tocdepth}{$toc-depth$}
+\tableofcontents
+}
+$endif$
+$if(lof)$
+\listoffigures
+$endif$
+$if(lot)$
+\listoftables
+$endif$
+$if(linestretch)$
+\setstretch{$linestretch$}
+$endif$
+$if(has-frontmatter)$
+\mainmatter
+$endif$
+$body$
+
+$if(has-frontmatter)$
+\backmatter
+$endif$
+$if(nocite-ids)$
+\nocite{$for(nocite-ids)$$it$$sep$, $endfor$}
+$endif$
+$if(natbib)$
+$if(bibliography)$
+$if(biblio-title)$
+$if(has-chapters)$
+\renewcommand\bibname{$biblio-title$}
+$else$
+\renewcommand\refname{$biblio-title$}
+$endif$
+$endif$
+\bibliography{$for(bibliography)$$bibliography$$sep$,$endfor$}
+
+$endif$
+$endif$
+$if(biblatex)$
+\printbibliography$if(biblio-title)$[title=$biblio-title$]$endif$
+
+$endif$
+$for(include-after)$
+$include-after$
+
+$endfor$
+\end{document}
