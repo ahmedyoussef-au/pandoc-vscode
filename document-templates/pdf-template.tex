@@ -35,61 +35,10 @@ $endif$
 %% Modern Styling (base LaTeX only — no extra packages required)
 %% ══════════════════════════════════════════════════════════════════════════
 
-%% System-font cascade via fontspec (ships with XeLaTeX/LuaLaTeX in every TeX
-%% distribution). Each role tries a designed-for-screen font first, falling back
-%% through fonts guaranteed on macOS, Windows, and most Linux systems. If nothing
-%% matches, fontspec keeps Latin Modern from the document class — never errors.
+%% Load fontspec early. The actual font selection happens further down, AFTER
+%% pandoc's common partial is included, because that partial loads lmodern which
+%% would otherwise reset our font families to Latin Modern.
 \usepackage{fontspec}
-
-$if(mainfont)$
-$else$
-%% Body font — humanist sans, modern and clean. Cascade through fonts preinstalled
-%% on macOS or Windows so no user install is needed:
-%%   Avenir Next (macOS)  →  Calibri (Windows)  →  Helvetica Neue (macOS)
-%%   →  Helvetica (macOS)  →  Arial (both)
-\IfFontExistsTF{Avenir Next}{%
-  \setmainfont{Avenir Next}[Ligatures=TeX]%
-}{\IfFontExistsTF{Calibri}{%
-  \setmainfont{Calibri}[Ligatures=TeX]%
-}{\IfFontExistsTF{Helvetica Neue}{%
-  \setmainfont{Helvetica Neue}[Ligatures=TeX]%
-}{\IfFontExistsTF{Helvetica}{%
-  \setmainfont{Helvetica}[Ligatures=TeX]%
-}{\IfFontExistsTF{Arial}{%
-  \setmainfont{Arial}[Ligatures=TeX]%
-}{}}}}}
-
-%% Serif fallback (used only if a document explicitly switches to \rmfamily):
-%%   Charter (macOS)  →  Georgia (both)  →  Cambria (Windows)  →  Times New Roman
-\IfFontExistsTF{Charter}{%
-  \setromanfont{Charter}[Ligatures=TeX,Numbers={OldStyle,Proportional}]%
-}{\IfFontExistsTF{Georgia}{%
-  \setromanfont{Georgia}[Ligatures=TeX]%
-}{\IfFontExistsTF{Cambria}{%
-  \setromanfont{Cambria}[Ligatures=TeX]%
-}{\IfFontExistsTF{Times New Roman}{%
-  \setromanfont{Times New Roman}[Ligatures=TeX]%
-}{}}}}
-$endif$
-
-$if(monofont)$
-$else$
-%% Mono cascade — all preinstalled on macOS or Windows:
-%%   SF Mono (macOS recent)  →  Menlo (macOS)  →  Cascadia Code (Win 11)
-%%   →  Consolas (Windows)  →  Courier New (both)
-%% MatchLowercase keeps x-heights aligned with the body font.
-\IfFontExistsTF{SF Mono}{%
-  \setmonofont{SF Mono}[Scale=MatchLowercase]%
-}{\IfFontExistsTF{Menlo}{%
-  \setmonofont{Menlo}[Scale=MatchLowercase]%
-}{\IfFontExistsTF{Cascadia Code}{%
-  \setmonofont{Cascadia Code}[Scale=MatchLowercase]%
-}{\IfFontExistsTF{Consolas}{%
-  \setmonofont{Consolas}[Scale=MatchLowercase]%
-}{\IfFontExistsTF{Courier New}{%
-  \setmonofont{Courier New}[Scale=MatchLowercase]%
-}{}}}}}
-$endif$
 
 %% Accent colours (xcolor already loaded above)
 \definecolor{accent}{HTML}{4F46E5}
@@ -179,6 +128,81 @@ $font-settings.latex()$
 
 $common.latex()$
 
+%% ── System-font cascade (must come after common.latex's \usepackage{lmodern}) ──
+%% Each role tries a designed-for-screen font first, falling back through fonts
+%% guaranteed preinstalled on macOS or Windows. If nothing matches, fontspec
+%% keeps Latin Modern — no error, just a less polished look.
+$if(mainfont)$
+$else$
+%% Body font — modern humanist sans. Mapping=tex-text lets fontspec substitute
+%% glyphs the font lacks (e.g. → arrows in Charter) from the math font.
+%%   Avenir Next (macOS)  →  Calibri (Windows)  →  Helvetica Neue (macOS)
+%%   →  Helvetica (macOS)  →  Arial (both)
+\IfFontExistsTF{Avenir Next}{%
+  \setmainfont{Avenir Next}[Ligatures=TeX,Mapping=tex-text]%
+}{\IfFontExistsTF{Calibri}{%
+  \setmainfont{Calibri}[Ligatures=TeX,Mapping=tex-text]%
+}{\IfFontExistsTF{Helvetica Neue}{%
+  \setmainfont{Helvetica Neue}[Ligatures=TeX,Mapping=tex-text]%
+}{\IfFontExistsTF{Helvetica}{%
+  \setmainfont{Helvetica}[Ligatures=TeX,Mapping=tex-text]%
+}{\IfFontExistsTF{Arial}{%
+  \setmainfont{Arial}[Ligatures=TeX,Mapping=tex-text]%
+}{}}}}}
+
+%% Sans family — set the same as the main font so \sffamily and headings stay
+%% consistent. (We deliberately do NOT set \setromanfont, because in fontspec
+%% it's an alias for \setmainfont and would overwrite our body font.)
+\IfFontExistsTF{Avenir Next}{%
+  \setsansfont{Avenir Next}[Ligatures=TeX,Mapping=tex-text]%
+}{\IfFontExistsTF{Calibri}{%
+  \setsansfont{Calibri}[Ligatures=TeX,Mapping=tex-text]%
+}{\IfFontExistsTF{Helvetica Neue}{%
+  \setsansfont{Helvetica Neue}[Ligatures=TeX,Mapping=tex-text]%
+}{\IfFontExistsTF{Helvetica}{%
+  \setsansfont{Helvetica}[Ligatures=TeX,Mapping=tex-text]%
+}{\IfFontExistsTF{Arial}{%
+  \setsansfont{Arial}[Ligatures=TeX,Mapping=tex-text]%
+}{}}}}}
+
+%% Glyph fallback: humanist sans body fonts often lack arrows. Route them to
+%% a font that has them so they render instead of as the .notdef glyph (?).
+%% Apple Symbols ships with macOS; on Windows, Segoe UI Symbol covers them.
+\IfFontExistsTF{Apple Symbols}{%
+  \newfontfamily{\symbolFallback}{Apple Symbols}%
+  \def\useSymbolFallback{1}%
+}{\IfFontExistsTF{Segoe UI Symbol}{%
+  \newfontfamily{\symbolFallback}{Segoe UI Symbol}%
+  \def\useSymbolFallback{1}%
+}{}}
+\ifdefined\useSymbolFallback
+  \catcode`\→=\active \def→{{\symbolFallback\char"2192}}%
+  \catcode`\←=\active \def←{{\symbolFallback\char"2190}}%
+  \catcode`\↑=\active \def↑{{\symbolFallback\char"2191}}%
+  \catcode`\↓=\active \def↓{{\symbolFallback\char"2193}}%
+  \catcode`\⇒=\active \def⇒{{\symbolFallback\char"21D2}}%
+  \catcode`\⇐=\active \def⇐{{\symbolFallback\char"21D0}}%
+\fi
+$endif$
+
+$if(monofont)$
+$else$
+%% Mono cascade — MatchLowercase aligns x-heights with the body font:
+%%   SF Mono (macOS)  →  Menlo (macOS)  →  Cascadia Code (Win 11)
+%%   →  Consolas (Windows)  →  Courier New (both)
+\IfFontExistsTF{SF Mono}{%
+  \setmonofont{SF Mono}[Scale=MatchLowercase]%
+}{\IfFontExistsTF{Menlo}{%
+  \setmonofont{Menlo}[Scale=MatchLowercase]%
+}{\IfFontExistsTF{Cascadia Code}{%
+  \setmonofont{Cascadia Code}[Scale=MatchLowercase]%
+}{\IfFontExistsTF{Consolas}{%
+  \setmonofont{Consolas}[Scale=MatchLowercase]%
+}{\IfFontExistsTF{Courier New}{%
+  \setmonofont{Courier New}[Scale=MatchLowercase]%
+}{}}}}}
+$endif$
+
 %% ── Code-block styling (no external dependencies) ──
 %% Pandoc wraps highlighted code as \begin{Shaded}\begin{Highlighting}…
 %% \end{Highlighting}\end{Shaded}, where Highlighting is a fancyvrb Verbatim
@@ -225,6 +249,34 @@ $common.latex()$
     \pandocOriginalRule[#1]{#2}{#3}%
   \fi
 }
+
+%% ── Table styling ──
+%% Editorial style: full-width tables, generous padding, coloured booktabs
+%% rules. No row fills (which avoids the fill-vs-rule width misalignment), no
+%% header text styling (which would require fragile per-row patching).
+%% Everything used is in BasicTeX (longtable, booktabs, array, etoolbox).
+\usepackage{etoolbox}
+\usepackage{colortbl}                       % for \arrayrulecolor
+\definecolor{tableRule}{HTML}{4F46E5}       % accent indigo for booktabs rules
+\arrayrulecolor{tableRule}
+\renewcommand{\arraystretch}{1.5}           % taller rows for breathing room
+\setlength{\tabcolsep}{12pt}                % generous horizontal padding
+\setlength{\heavyrulewidth}{1pt}            % top/bottom rule weight
+\setlength{\lightrulewidth}{0.5pt}          % midrule weight
+
+%% Tables sit left-aligned at the text margin with a touch of vertical air
+%% above and below. We intentionally do NOT force full-width via
+%% \extracolsep{\fill} — with only two columns it pushes the second column to
+%% the page edge, looking unbalanced. Letting tables size to their content
+%% renders better for typical markdown tables.
+\AtBeginEnvironment{longtable}{%
+  \setlength{\LTleft}{0pt}%
+  \setlength{\LTright}{\fill}%
+  \setlength{\LTpre}{8pt}%
+  \setlength{\LTpost}{8pt}%
+  \arrayrulecolor{tableRule}%
+}
+
 
 $for(header-includes)$
 $header-includes$
