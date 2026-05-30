@@ -311,6 +311,46 @@ $endif$
 %% `(\columnwidth - 2\tabcolsep) * \real{0.5}` widths). If the spec doesn't
 %% match the expected pattern the regex is a no-op and the original spec
 %% passes through unchanged.
+%% Inner padding for outer columns. The column spec ends with `@{}` to keep
+%% the booktabs rules flush with the table edge, which suppresses the outer
+%% \tabcolsep gap that would otherwise pad cell content from the rule ends.
+%% Two cases to handle:
+%%
+%% 1. Plain `l/c/r` cells (basic tables, body of aligned tables): \hspace* in
+%%    the column's >{}/<{} hooks pushes content inward.
+%% 2. Pandoc's aligned-column headers wrap content in
+%%    \begin{minipage}[b]{\linewidth}, which fills the entire (fixed) column
+%%    width. \hspace* outside the minipage gets pushed past the rule end.
+%%    Fix: shrink \linewidth inside such minipages so the column's >{}/<{}
+%%    \hspace* sits visibly inside the rules. Done by patching \minipage to
+%%    subtract 2*pad from its width arg whenever it sees \linewidth.
+\newlength{\pdctmplPadAmt}
+\setlength{\pdctmplPadAmt}{8pt}
+\newcommand{\pdctmplPadL}{\hspace*{\pdctmplPadAmt}}
+\newcommand{\pdctmplPadR}{\hspace*{\pdctmplPadAmt}}
+
+%% Patch \minipage: when called inside a longtable cell with width \linewidth
+%% (pandoc's pattern for aligned-header cells), shrink the width by 2*pad so
+%% the surrounding \pdctmplPadL/\pdctmplPadR fit between the minipage and the
+%% rule ends. The \pdctmplInTable flag, set/cleared by \longtable, scopes the
+%% patch so other minipages in the document are unaffected.
+\newif\ifpdctmplInTable
+\pdctmplInTablefalse
+\let\pdctmplOrigMinipage\minipage
+\renewcommand{\minipage}[2][c]{%
+  \ifpdctmplInTable
+    \pdctmplOrigMinipage[#1]{\dimexpr#2-2\pdctmplPadAmt\relax}%
+  \else
+    \pdctmplOrigMinipage[#1]{#2}%
+  \fi
+}
+
+%% Pandoc may also wrap cells in \multicolumn{1}{<align>}{...}, which bypasses
+%% the column spec's >{}/<{} hooks. Patch \multicolumn so single-column cells
+%% get the inner padding too.
+\let\pdctmplOrigMulticolumn\multicolumn
+\renewcommand{\multicolumn}[3]{\pdctmplOrigMulticolumn{#1}{#2}{\pdctmplPadL #3\pdctmplPadR}}
+
 \ExplSyntaxOn
 \tl_new:N \pdctmplStoredColspec
 \cs_new_protected:Npn \pdctmpl_rewrite_colspec:n #1 {
@@ -319,9 +359,9 @@ $endif$
   \regex_replace_once:nnN { \s* @ \cB. \cE. \s* \Z } { } \l_tmpa_tl
   \regex_replace_once:nnN
     { ( (?: > \cB. [^\cB.\cE.]* \cE. \s* )? (?: [lcr] | p \cB. [^\cB.\cE.]* (?: \cB. [^\cB.\cE.]* \cE. [^\cB.\cE.]* )* \cE. ) ) \s* \Z }
-    { > \cB. \c{columncolor} \cB. pdctmplDynColor \cE. [\c{tabcolsep}] [0pt] \cE. \1 }
+    { > \cB. \c{columncolor} \cB. pdctmplDynColor \cE. [\c{tabcolsep}] [0pt] \cE. \1 < \cB. \c{pdctmplPadR} \cE. }
     \l_tmpa_tl
-  \tl_put_left:Nn \l_tmpa_tl { @{} > { \columncolor { pdctmplDynColor } [0pt] [\tabcolsep] } }
+  \tl_put_left:Nn \l_tmpa_tl { @{} > { \columncolor { pdctmplDynColor } [0pt] [\tabcolsep] \pdctmplPadL } }
   \tl_put_right:Nn \l_tmpa_tl { @{} }
   \tl_gset_eq:NN \pdctmplStoredColspec \l_tmpa_tl
 }
@@ -342,15 +382,21 @@ $endif$
 %% \midrule rebinds it back to white so body rows paint invisibly.
 \let\origtoprule\toprule
 \renewcommand{\toprule}{%
-  \origtoprule%
+  \origtoprule[0.3pt]%
   \noalign{\global\colorlet{pdctmplDynColor}{tableHeaderBg}}%
   \rowcolor{tableHeaderBg}%
 }
 \let\origmidrule\midrule
 \renewcommand{\midrule}{%
   \noalign{\global\colorlet{pdctmplDynColor}{white}}%
-  \origmidrule%
+  \origmidrule[0.3pt]%
 }
+
+%% Thinner bottom rule — booktabs' \bottomrule takes an optional width argument
+%% that overrides \heavyrulewidth for that one rule. Use it to render the
+%% bottom edge at 0.3pt while \toprule keeps the 1pt anchor on the header.
+\let\origbottomrule\bottomrule
+\renewcommand{\bottomrule}{\origbottomrule[0.3pt]}
 
 %% Tables sit left-aligned at the text margin with a touch of vertical air
 %% above and below. We intentionally do NOT force full-width via
@@ -358,6 +404,7 @@ $endif$
 %% the page edge, looking unbalanced. Letting tables size to their content
 %% renders better for typical markdown tables.
 \AtBeginEnvironment{longtable}{%
+  \pdctmplInTabletrue%
   \setlength{\LTleft}{0pt}%
   \setlength{\LTright}{\fill}%
   \setlength{\LTpre}{8pt}%
