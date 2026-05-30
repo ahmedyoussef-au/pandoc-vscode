@@ -273,18 +273,84 @@ $endif$
 }
 
 %% ── Table styling ──
-%% Editorial style: full-width tables, generous padding, coloured booktabs
-%% rules. No row fills (which avoids the fill-vs-rule width misalignment), no
-%% header text styling (which would require fragile per-row patching).
-%% Everything used is in BasicTeX (longtable, booktabs, array, etoolbox).
+%% Editorial style: generous padding, dark-grey booktabs rules, light-grey
+%% header row fill. Everything used is in BasicTeX (longtable, booktabs,
+%% array, etoolbox, colortbl).
 \usepackage{etoolbox}
-\usepackage{colortbl}                       % for \arrayrulecolor
-\definecolor{tableRule}{HTML}{4F46E5}       % accent indigo for booktabs rules
+\usepackage{colortbl}                       % for \arrayrulecolor / \rowcolor
+\definecolor{tableRule}{HTML}{4A5568}       % dark grey for booktabs rules
+\definecolor{tableHeaderBg}{HTML}{E5E7EB}   % light grey for header row fill
 \arrayrulecolor{tableRule}
 \renewcommand{\arraystretch}{1.5}           % taller rows for breathing room
 \setlength{\tabcolsep}{12pt}                % generous horizontal padding
 \setlength{\heavyrulewidth}{1pt}            % top/bottom rule weight
 \setlength{\lightrulewidth}{0.5pt}          % midrule weight
+
+%% Header-row background — asymmetric per-cell overhang.
+%% \rowcolor applies the same per-cell overhang to every cell, so a single
+%% call can't both fill the 2*\tabcolsep inter-column gaps (needs \tabcolsep
+%% on each side) AND keep the outer edges flush with the booktabs rules
+%% (needs 0pt on the outer side). We solve it by letting \rowcolor handle
+%% interior cells with its default \tabcolsep overhang and injecting a
+%% \columncolor on the first and last columns of pandoc's column spec to
+%% override their outer overhang to 0pt.
+%%
+%% \columncolor is a delimiter token recognised by array's preamble parser
+%% — it must appear literally in the column spec, not be expanded from a
+%% wrapper macro at cell time. To make the column color conditional on
+%% "header vs body row", we point \columncolor at a named colour that's
+%% \colorlet-rebound by \toprule (to tableHeaderBg) and \midrule (back to
+%% white). Body-row columns then paint white-on-white — invisible.
+\colorlet{pdctmplDynColor}{white}
+
+%% Rewrite pandoc's longtable column spec: wrap the first column with
+%% >{\columncolor{pdctmplDynColor}[0pt][\tabcolsep]} and the last column
+%% with >{\columncolor{pdctmplDynColor}[\tabcolsep][0pt]}. Handles both
+%% simple `l`/`c`/`r` columns and `>{...}p{...}` columns (with one level of
+%% nested braces, which is what pandoc emits for
+%% `(\columnwidth - 2\tabcolsep) * \real{0.5}` widths). If the spec doesn't
+%% match the expected pattern the regex is a no-op and the original spec
+%% passes through unchanged.
+\ExplSyntaxOn
+\tl_new:N \pdctmplStoredColspec
+\cs_new_protected:Npn \pdctmpl_rewrite_colspec:n #1 {
+  \tl_set:Nn \l_tmpa_tl {#1}
+  \regex_replace_once:nnN { \A \s* @ \cB. \cE. \s* } { } \l_tmpa_tl
+  \regex_replace_once:nnN { \s* @ \cB. \cE. \s* \Z } { } \l_tmpa_tl
+  \regex_replace_once:nnN
+    { ( (?: > \cB. [^\cB.\cE.]* \cE. \s* )? (?: [lcr] | p \cB. [^\cB.\cE.]* (?: \cB. [^\cB.\cE.]* \cE. [^\cB.\cE.]* )* \cE. ) ) \s* \Z }
+    { > \cB. \c{columncolor} \cB. pdctmplDynColor \cE. [\c{tabcolsep}] [0pt] \cE. \1 }
+    \l_tmpa_tl
+  \tl_put_left:Nn \l_tmpa_tl { @{} > { \columncolor { pdctmplDynColor } [0pt] [\tabcolsep] } }
+  \tl_put_right:Nn \l_tmpa_tl { @{} }
+  \tl_gset_eq:NN \pdctmplStoredColspec \l_tmpa_tl
+}
+\cs_new_eq:NN \pdctmplRewriteColspec \pdctmpl_rewrite_colspec:n
+\ExplSyntaxOff
+\let\pdctmplOrigLongtable\longtable
+\renewcommand{\longtable}[2][]{%
+  \pdctmplRewriteColspec{#2}%
+  \edef\pdctmplDoLongtable{%
+    \noexpand\pdctmplOrigLongtable[\unexpanded{#1}]%
+      {\unexpanded\expandafter{\pdctmplStoredColspec}}%
+  }%
+  \pdctmplDoLongtable%
+}
+
+%% \toprule rebinds pdctmplDynColor to tableHeaderBg and emits \rowcolor
+%% (which paints the interior cells with default \tabcolsep overhang);
+%% \midrule rebinds it back to white so body rows paint invisibly.
+\let\origtoprule\toprule
+\renewcommand{\toprule}{%
+  \origtoprule%
+  \noalign{\global\colorlet{pdctmplDynColor}{tableHeaderBg}}%
+  \rowcolor{tableHeaderBg}%
+}
+\let\origmidrule\midrule
+\renewcommand{\midrule}{%
+  \noalign{\global\colorlet{pdctmplDynColor}{white}}%
+  \origmidrule%
+}
 
 %% Tables sit left-aligned at the text margin with a touch of vertical air
 %% above and below. We intentionally do NOT force full-width via
