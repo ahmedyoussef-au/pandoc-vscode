@@ -54,6 +54,9 @@ $endif$
 
 %% Accent colours (xcolor already loaded above)
 \definecolor{accent}{HTML}{4682B4}
+\definecolor{headingone}{HTML}{D81E00}
+\definecolor{headingtwo}{HTML}{D9461E}
+\definecolor{headingthree}{HTML}{FF7D41}
 \definecolor{muted}{HTML}{718096}
 \definecolor{rulecol}{HTML}{CBD5E0}
 
@@ -78,15 +81,15 @@ $endif$
 \renewcommand\section{\@startsection{section}{1}{\z@}%
   {-1.8em \@plus -0.5ex \@minus -0.2ex}%
   {0.6em \@plus 0.2ex}%
-  {\Large\bfseries\color{accent}}}
+  {\Large\bfseries\color{headingone}}}
 \renewcommand\subsection{\@startsection{subsection}{2}{\z@}%
   {-1.3em \@plus -0.4ex \@minus -0.2ex}%
   {0.4em \@plus 0.2ex}%
-  {\large\bfseries}}
+  {\large\bfseries\color{headingtwo}}}
 \renewcommand\subsubsection{\@startsection{subsubsection}{3}{\z@}%
   {-1em \@plus -0.3ex \@minus -0.2ex}%
   {0.2em \@plus 0.1ex}%
-  {\normalsize\bfseries\color{muted}}}
+  {\normalsize\bfseries\color{headingthree}}}
 
 %% Title block (no titling package needed)
 \renewcommand{\maketitle}{%
