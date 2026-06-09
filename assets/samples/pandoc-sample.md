@@ -1,4 +1,4 @@
-# Pandoc VS Code Extension — Sample Document
+# Pandoc VS Code Extension - Sample Document
 
 This file demonstrates all built-in Lua filters. Convert it to DOCX, HTML, or PDF using the command palette or right-click menu.
 
@@ -111,9 +111,9 @@ Where `section-id` is the ID of the target section. Section IDs can be customise
 
 ## Line Breaks <!-- {#line-breaks} -->
 
-This line has a break here<br>and continues on the next line.
+This line has a break here`<br>` and continues on the next line.
 
-You can also use the self-closing form:<br>like this.
+You can also use the self-closing form:`<br />`like this.
 
 ## Page Breaks <!-- {#page-breaks} -->
 
@@ -166,7 +166,8 @@ graph TD
 
 Pandoc supports different table formats including pipe tables, multiline tables and grid tables. For consistency, use pipe tables everywhere to ensure compatibility with major markdown viewers and editors.
 
-**Pipe Table Example:**
+
+### Pipe Table Example:
 
 ```markdown
 | Header 1 | Header 2 |
@@ -174,11 +175,15 @@ Pandoc supports different table formats including pipe tables, multiline tables 
 | Row 1    | Data     |
 ```
 
+Produces:
+
 | Header 1 | Header 2 |
 |----------|----------|
 | Row 1    | Data     |
 
-**Multi-line Pipe Table Example:**
+---
+
+### Multi-line Pipe Table Example:
 
 ```markdown
 | Header 1  | Header 2               |
@@ -186,13 +191,16 @@ Pandoc supports different table formats including pipe tables, multiline tables 
 | Row 1     | Item 1<br>Item 2       |
 | Row 2     | • List 1<br>• List 2   |
 ```
+Produces:
 
 | Header 1  | Header 2               |
 |-----------|------------------------|
 | Row 1     | Item 1<br>Item 2       |
 | Row 2     | • List 1<br>• List 2   |
 
-**Table with Alignment and Spacing:**
+---
+
+### Table with Alignment and Spacing:
 
 - Use colons `:` to set alignment for each column.
 - Use tabs or spaces to add padding within cells and allow word to auto-size columns.
@@ -202,6 +210,7 @@ Pandoc supports different table formats including pipe tables, multiline tables 
 |:------------------------|:-------------------------:|------------------------:|
 | Data                    | Data                      | Data                    |
 ```
+Produces:
 
 | Left Align              | Centre Align              | Right Align             |
 |:------------------------|:-------------------------:|------------------------:|
