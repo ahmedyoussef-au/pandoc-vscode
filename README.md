@@ -45,8 +45,9 @@ Create editable DOCX, HTML, and PDF templates in your workspace and automaticall
 
 - Open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 - Run `Pandoc: Generate Templates`
-- Templates are copied into `${workspaceFolder}/templates/`
+- Templates are copied into `${workspaceFolder}/pandoc-templates/`
 - The extension updates `pandoc.docx.template`, `pandoc.html.template`, and `pandoc.pdf.template` in workspace settings
+- If `pandoc.pdf.commonArgs` does not already specify a `--pdf-engine`, `--pdf-engine=xelatex` is appended (the bundled PDF template uses `fontspec`, which requires `xelatex` or `lualatex`)
 
 Leave template settings empty to use Pandoc's built-in defaults. Use generated templates when you want an editable starting point, or set template paths manually for your own custom templates.
 
@@ -109,9 +110,9 @@ Run `Pandoc: Generate Templates` to copy the extension's bundled templates into 
 
 ```json
 {
-  "pandoc.docx.template": "${workspaceFolder}/templates/docx-template.docx",
-  "pandoc.html.template": "${workspaceFolder}/templates/html-template.html",
-  "pandoc.pdf.template": "${workspaceFolder}/templates/pdf-template.tex"
+  "pandoc.docx.template": "${workspaceFolder}/pandoc-templates/docx-template.docx",
+  "pandoc.html.template": "${workspaceFolder}/pandoc-templates/html-template.html",
+  "pandoc.pdf.template": "${workspaceFolder}/pandoc-templates/pdf-template.tex"
 }
 ```
 
@@ -171,9 +172,9 @@ Where `{format}` is `docx`, `html`, or `pdf`.
     "builtin:page-break",
     "${workspaceFolder}/my-project-filters/word-count.lua"
   ],
-  "pandoc.docx.template": "${workspaceFolder}/templates/docx-template.docx",
-  "pandoc.html.template": "${workspaceFolder}/templates/html-template.html",
-  "pandoc.pdf.template": "${workspaceFolder}/templates/pdf-template.tex",
+  "pandoc.docx.template": "${workspaceFolder}/pandoc-templates/docx-template.docx",
+  "pandoc.html.template": "${workspaceFolder}/pandoc-templates/html-template.html",
+  "pandoc.pdf.template": "${workspaceFolder}/pandoc-templates/pdf-template.tex",
   "pandoc.docx.commonArgs": [
     "--number-sections"
   ],
@@ -256,8 +257,10 @@ This sample demonstrates how the built-in filters work together and provides a p
 ### 0.3.0
 
 - Added template settings for DOCX, HTML, and PDF conversions, defaulting to Pandoc's built-in templates when unset
-- Added command: "Pandoc: Generate Templates" to copy bundled templates into the workspace and update template settings
+- Added command: "Pandoc: Generate Templates" to copy bundled templates into `${workspaceFolder}/pandoc-templates/` and update template settings
+- Generate Templates also appends `--pdf-engine=xelatex` to `pandoc.pdf.commonArgs` when no `--pdf-engine` is set (the bundled PDF template uses `fontspec`)
 - Explicit `--template` and `--reference-doc` Pandoc arguments continue to override template settings
+- Fixed built-in Lua filters for PDF output: `page-break` now splits mid-paragraph `<!-- pagebreak -->` markers (previously dropped under `hard_line_breaks`), and the bundled PDF template no longer crashes on documents without code blocks or tables
 
 ### 0.2.1
 

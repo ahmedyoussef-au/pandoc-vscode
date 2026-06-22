@@ -155,16 +155,19 @@
         "pandoc.docx.template": {
           "type": "string",
           "default": "",
+          "scope": "resource",
           "description": "Optional DOCX reference document path. Leave empty to use Pandoc's default DOCX styling. Use the 'Pandoc: Generate Templates' command to create an editable workspace template. Ignored when DOCX args already include --reference-doc."
         },
         "pandoc.html.template": {
           "type": "string",
           "default": "",
+          "scope": "resource",
           "description": "Optional HTML template path. Leave empty to use Pandoc's default HTML template. Use the 'Pandoc: Generate Templates' command to create an editable workspace template. Ignored when HTML args already include --template."
         },
         "pandoc.pdf.template": {
           "type": "string",
           "default": "",
+          "scope": "resource",
           "description": "Optional PDF LaTeX template path. Leave empty to use Pandoc's default PDF template. Use the 'Pandoc: Generate Templates' command to create an editable workspace template. Ignored when PDF args already include --template."
         },
         "pandoc.filters": {
@@ -294,7 +297,7 @@
     "@types/vscode": "^1.93.0",
     "@typescript-eslint/eslint-plugin": "^7.0.0",
     "@typescript-eslint/parser": "^7.0.0",
-    "@vscode/vsce": "^3.6.2",
+    "@vscode/vsce": "^3.9.2",
     "eslint": "^8.57.0",
     "typescript": "^5.4.0"
   }

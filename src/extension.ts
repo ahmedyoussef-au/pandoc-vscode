@@ -77,7 +77,10 @@ export function activate(context: vscode.ExtensionContext) {
       { setting: 'pdf.template', fileName: 'pdf-template.tex' }
     ];
     const sourceDir = path.join(extensionPath, 'assets', 'templates');
-    const targetDir = path.join(folder.uri.fsPath, 'templates');
+    const targetDir = path.join(folder.uri.fsPath, 'pandoc-templates');
+    const configurationTarget = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 1
+      ? vscode.ConfigurationTarget.WorkspaceFolder
+      : vscode.ConfigurationTarget.Workspace;
 
     await fs.promises.mkdir(targetDir, { recursive: true });
 
@@ -91,10 +94,24 @@ export function activate(context: vscode.ExtensionContext) {
         copiedCount += 1;
       }
 
-      await vscode.workspace.getConfiguration('pandoc', folder.uri).update(
+      await vscode.workspace.getConfiguration('pandoc').update(
         template.setting,
-        `\${workspaceFolder}/templates/${template.fileName}`,
-        vscode.ConfigurationTarget.WorkspaceFolder
+        `\${workspaceFolder}/pandoc-templates/${template.fileName}`,
+        configurationTarget
+      );
+    }
+
+    const pdfCfg = vscode.workspace.getConfiguration('pandoc');
+    const pdfCommon = pdfCfg.get<string[]>('pdf.commonArgs') || [];
+    const pdfCustom = pdfCfg.get<string[]>('pdf.customArgs') || [];
+    const hasEngine = [...pdfCommon, ...pdfCustom].some(arg =>
+      arg === '--pdf-engine' || arg.startsWith('--pdf-engine=')
+    );
+    if (!hasEngine) {
+      await pdfCfg.update(
+        'pdf.commonArgs',
+        [...pdfCommon, '--pdf-engine=xelatex'],
+        configurationTarget
       );
     }
 

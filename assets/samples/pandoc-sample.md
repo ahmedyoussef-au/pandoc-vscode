@@ -51,9 +51,9 @@ Add these to your VS Code settings (`settings.json`):
     "builtin:page-break",
     "${workspaceFolder}/my-project-filters/word-count.lua"
   ],
-  "pandoc.docx.template": "${workspaceFolder}/templates/docx-template.docx",
-  "pandoc.html.template": "${workspaceFolder}/templates/html-template.html",
-  "pandoc.pdf.template": "${workspaceFolder}/templates/pdf-template.tex",
+  "pandoc.docx.template": "${workspaceFolder}/pandoc-templates/docx-template.docx",
+  "pandoc.html.template": "${workspaceFolder}/pandoc-templates/html-template.html",
+  "pandoc.pdf.template": "${workspaceFolder}/pandoc-templates/pdf-template.tex",
   "pandoc.docx.commonArgs": [
     "--number-sections"
   ],
@@ -74,11 +74,13 @@ Add these to your VS Code settings (`settings.json`):
 
 Template settings are empty by default. When they are empty, Pandoc uses its own built-in defaults.
 
-Run `Pandoc: Generate Templates` to copy the extension templates into your workspace at `templates/` and update these settings automatically:
+Run `Pandoc: Generate Templates` to copy the extension templates into your workspace at `pandoc-templates/` and update these settings automatically:
 
 - `pandoc.docx.template` → passed to Pandoc as `--reference-doc`
 - `pandoc.html.template` → passed to Pandoc as `--template`
 - `pandoc.pdf.template` → passed to Pandoc as `--template`
+
+If `pandoc.pdf.commonArgs` does not already specify a `--pdf-engine`, `--pdf-engine=xelatex` is appended (the bundled PDF template uses `fontspec`, which requires `xelatex` or `lualatex`).
 
 You can edit those generated files or point the settings at your own templates.
 

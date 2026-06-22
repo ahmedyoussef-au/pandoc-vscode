@@ -1,2 +1,8 @@
 {
+    "pandoc.docx.template": "${workspaceFolder}/pandoc-templates/docx-template.docx",
+    "pandoc.html.template": "${workspaceFolder}/pandoc-templates/html-template.html",
+    "pandoc.pdf.template": "${workspaceFolder}/pandoc-templates/pdf-template.tex",
+    "pandoc.pdf.commonArgs": [
+        "--pdf-engine=xelatex"
+    ]
 }
