@@ -70,9 +70,47 @@ function buildArgsForFormat(cfg: vscode.WorkspaceConfiguration, fmt: Format, inp
     : cfg.get<string[]>(`${fmt}.singleFileCustomArgs`) || [];
   
   const mergedArgs = [...baseArgs, ...contextSpecificArgs];
+  const templateArgs = resolveTemplateArgs(cfg, fmt, mergedArgs, uri);
   const resolvedArgs = mergedArgs.map(arg => resolveVariables(arg, uri));
-  const args: string[] = [...defaultArgs, ...filterArgs, ...resolvedArgs, '-o', output, input];
+  const args: string[] = [...defaultArgs, ...filterArgs, ...templateArgs, ...resolvedArgs, '-o', output, input];
   return args;
+}
+
+function resolveTemplateArgs(cfg: vscode.WorkspaceConfiguration, fmt: Format, existingArgs: string[], uri: vscode.Uri): string[] {
+  const template = (cfg.get<string>(`${fmt}.template`) || '').trim();
+  if (!template) {
+    return [];
+  }
+
+  const optionNames = fmt === 'docx'
+    ? ['--reference-doc', '--reference-docx']
+    : ['--template'];
+
+  if (hasPandocOption(existingArgs, optionNames)) {
+    return [];
+  }
+
+  const optionName = optionNames[0];
+  return [`${optionName}=${resolvePathSetting(template, uri)}`];
+}
+
+function hasPandocOption(args: string[], optionNames: string[]): boolean {
+  return args.some((arg, index) => optionNames.some(optionName =>
+    arg === optionName ||
+    arg.startsWith(`${optionName}=`) ||
+    args[index - 1] === optionName
+  ));
+}
+
+function resolvePathSetting(setting: string, uri: vscode.Uri): string {
+  const resolved = resolveVariables(setting, uri);
+  if (path.isAbsolute(resolved)) {
+    return resolved;
+  }
+
+  const folder = vscode.workspace.getWorkspaceFolder(uri);
+  const workspaceFolder = folder?.uri.fsPath || path.dirname(uri.fsPath);
+  return path.resolve(workspaceFolder, resolved);
 }
 
 function resolveFilterArgs(cfg: vscode.WorkspaceConfiguration, extensionPath: string, uri: vscode.Uri): string[] {

@@ -1,13 +1,14 @@
 # Pandoc VS Code Extension - Sample Document
 
-This file demonstrates all built-in Lua filters. Convert it to DOCX, HTML, or PDF using the command palette or right-click menu.
+This file demonstrates the built-in Lua filters, template settings, and common Pandoc conversion options. Convert it to DOCX, HTML, or PDF using the command palette or right-click menu.
 
 ## How to Use <!-- {#how-to-use} -->
 
 1. **Convert this file**: Right-click in the editor or Explorer → Pandoc → Choose format (DOCX, HTML, or PDF)
 2. **Convert a folder**: Right-click a folder in the Explorer → Pandoc → Choose format (DOCX, HTML, or PDF)
-3. **Generate Sample Markdown**: Right-click in the editor or Explorer → Pandoc → Generate Sample Markdown
-4. **Command Palette**: Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux) → type "Pandoc"
+3. **Generate Sample Markdown**: Open the command palette and run `Pandoc: Generate Sample Markdown`
+4. **Generate Templates**: Open the command palette and run `Pandoc: Generate Templates`
+5. **Command Palette**: Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux) → type "Pandoc"
 
 ---
 
@@ -17,6 +18,7 @@ You need the following tools installed:
 
 - **Pandoc** ([Install guide](https://pandoc.org/installing.html))
 - **Mermaid CLI** (`mmdc`) for rendering Mermaid diagrams ([Install guide](https://github.com/mermaid-js/mermaid-cli))
+- **A LaTeX engine** such as `xelatex` for PDF output
 
 Mermaid CLI requires Node.js and npm to be installed first.
 
@@ -49,13 +51,14 @@ Add these to your VS Code settings (`settings.json`):
     "builtin:page-break",
     "${workspaceFolder}/my-project-filters/word-count.lua"
   ],
+  "pandoc.docx.template": "${workspaceFolder}/templates/docx-template.docx",
+  "pandoc.html.template": "${workspaceFolder}/templates/html-template.html",
+  "pandoc.pdf.template": "${workspaceFolder}/templates/pdf-template.tex",
   "pandoc.docx.commonArgs": [
-    "--reference-doc=${workspaceFolder}/my-project-templates/template.docx",
-    "--toc"
+    "--number-sections"
   ],
   "pandoc.docx.multipleFilesCustomArgs": [
-    "--reference-doc=${workspaceFolder}/my-project-templates/cover.docx",
-    "--number-sections"
+    "--toc"
   ],
   "pandoc.html.commonArgs": [
     "--standalone",
@@ -66,6 +69,20 @@ Add these to your VS Code settings (`settings.json`):
   ]
 }
 ```
+
+### Templates <!-- {#templates} -->
+
+Template settings are empty by default. When they are empty, Pandoc uses its own built-in defaults.
+
+Run `Pandoc: Generate Templates` to copy the extension templates into your workspace at `templates/` and update these settings automatically:
+
+- `pandoc.docx.template` → passed to Pandoc as `--reference-doc`
+- `pandoc.html.template` → passed to Pandoc as `--template`
+- `pandoc.pdf.template` → passed to Pandoc as `--template`
+
+You can edit those generated files or point the settings at your own templates.
+
+Use `pandoc.{format}.commonArgs` as the advanced escape hatch. If you add `--template` or `--reference-doc` directly to `commonArgs`, that explicit Pandoc argument overrides the matching template setting.
 
 ### Format-Specific Notes
 

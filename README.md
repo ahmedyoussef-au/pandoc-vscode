@@ -10,6 +10,7 @@ This extension integrates Pandoc into Visual Studio Code, allowing you to conver
 - **Customizable options** - Configure Pandoc command-line arguments
 - **Multiple output formats** - HTML, PDF, DOCX, and more
 - **Built-in filters** - Page breaks, custom header IDs, Mermaid diagrams, and HTML line breaks
+- **Editable templates** - Generate workspace templates for DOCX, HTML, and PDF output
 
 ### Single File Conversion
 
@@ -37,6 +38,17 @@ Create a ready-to-use sample Markdown file that demonstrates all built-in filter
 - Open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 - Run `Pandoc: Generate Sample Markdown`
 - The sample file is created in your workspace
+
+### Generate Templates
+
+Create editable DOCX, HTML, and PDF templates in your workspace and automatically point the extension settings at them:
+
+- Open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`)
+- Run `Pandoc: Generate Templates`
+- Templates are copied into `${workspaceFolder}/templates/`
+- The extension updates `pandoc.docx.template`, `pandoc.html.template`, and `pandoc.pdf.template` in workspace settings
+
+Leave template settings empty to use Pandoc's built-in defaults. Use generated templates when you want an editable starting point, or set template paths manually for your own custom templates.
 
 ## Requirements
 
@@ -84,6 +96,28 @@ This extension contributes the following settings:
 
 * `pandoc.path`: Optional absolute path to the pandoc executable. If empty, 'pandoc' from PATH is used.
 * `pandoc.outputDir`: Default output directory. Leave empty to use the source file's directory. Relative paths are resolved against the workspace folder.
+
+### Templates
+
+Template settings are empty by default, so Pandoc uses its built-in templates unless you opt in.
+
+* `pandoc.docx.template`: Optional DOCX reference document path. The extension passes this to Pandoc as `--reference-doc`.
+* `pandoc.html.template`: Optional HTML template path. The extension passes this to Pandoc as `--template`.
+* `pandoc.pdf.template`: Optional PDF LaTeX template path. The extension passes this to Pandoc as `--template`.
+
+Run `Pandoc: Generate Templates` to copy the extension's bundled templates into your workspace and update these settings automatically:
+
+```json
+{
+  "pandoc.docx.template": "${workspaceFolder}/templates/docx-template.docx",
+  "pandoc.html.template": "${workspaceFolder}/templates/html-template.html",
+  "pandoc.pdf.template": "${workspaceFolder}/templates/pdf-template.tex"
+}
+```
+
+To use your own templates, set these paths manually. Relative paths are resolved against the workspace folder.
+
+If you need full control, add `--reference-doc` or `--template` directly to `pandoc.{format}.commonArgs`; explicit Pandoc arguments override the matching template setting.
 
 ### Filters
 
@@ -137,8 +171,11 @@ Where `{format}` is `docx`, `html`, or `pdf`.
     "builtin:page-break",
     "${workspaceFolder}/my-project-filters/word-count.lua"
   ],
+  "pandoc.docx.template": "${workspaceFolder}/templates/docx-template.docx",
+  "pandoc.html.template": "${workspaceFolder}/templates/html-template.html",
+  "pandoc.pdf.template": "${workspaceFolder}/templates/pdf-template.tex",
   "pandoc.docx.commonArgs": [
-    "--reference-doc=${workspaceFolder}/my-project-templates/template.docx"
+    "--number-sections"
   ],
   "pandoc.docx.singleFileCustomArgs": [
     "--resource-path=../images:./images"
@@ -215,6 +252,12 @@ This sample demonstrates how the built-in filters work together and provides a p
 - **PDF** - Requires LaTeX installation (e.g., xelatex, pdflatex)
 
 ## Release Notes
+
+### 0.3.0
+
+- Added template settings for DOCX, HTML, and PDF conversions, defaulting to Pandoc's built-in templates when unset
+- Added command: "Pandoc: Generate Templates" to copy bundled templates into the workspace and update template settings
+- Explicit `--template` and `--reference-doc` Pandoc arguments continue to override template settings
 
 ### 0.2.1
 

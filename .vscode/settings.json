@@ -1,12 +1,2 @@
 {
-    "pandoc.pdf.commonArgs": [
-        "--pdf-engine=xelatex",
-        "--template=${workspaceFolder}/assets/templates/pdf-template.tex"
-    ],
-    "pandoc.html.commonArgs": [
-        "--template=${workspaceFolder}/assets/templates/html-template.html"
-    ],
-    "pandoc.docx.commonArgs": [
-        "--reference-doc=${workspaceFolder}/assets/templates/docx-template.docx"
-    ]
 }

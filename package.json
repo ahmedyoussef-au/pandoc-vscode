@@ -2,7 +2,7 @@
   "name": "pandoc-vscode",
   "displayName": "Pandoc Extension for VSCode",
   "description": "Convert Markdown files to DOCX, HTML and PDF using Pandoc",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "publisher": "AhmedYoussef",
   "icon": "pandoc.png",
   "repository": {
@@ -68,6 +68,11 @@
       {
         "command": "pandoc.generateSampleMarkdown",
         "title": "Generate Sample Markdown",
+        "category": "Pandoc"
+      },
+      {
+        "command": "pandoc.generateTemplates",
+        "title": "Generate Templates",
         "category": "Pandoc"
       }
     ],
@@ -146,6 +151,21 @@
           "type": "string",
           "default": "",
           "description": "Default output directory. Leave empty to use the source file's directory. Relative paths are resolved against the workspace folder."
+        },
+        "pandoc.docx.template": {
+          "type": "string",
+          "default": "",
+          "description": "Optional DOCX reference document path. Leave empty to use Pandoc's default DOCX styling. Use the 'Pandoc: Generate Templates' command to create an editable workspace template. Ignored when DOCX args already include --reference-doc."
+        },
+        "pandoc.html.template": {
+          "type": "string",
+          "default": "",
+          "description": "Optional HTML template path. Leave empty to use Pandoc's default HTML template. Use the 'Pandoc: Generate Templates' command to create an editable workspace template. Ignored when HTML args already include --template."
+        },
+        "pandoc.pdf.template": {
+          "type": "string",
+          "default": "",
+          "description": "Optional PDF LaTeX template path. Leave empty to use Pandoc's default PDF template. Use the 'Pandoc: Generate Templates' command to create an editable workspace template. Ignored when PDF args already include --template."
         },
         "pandoc.filters": {
           "type": "array",

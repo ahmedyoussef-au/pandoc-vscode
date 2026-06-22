@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.3.0]
+
+- Added template settings for DOCX, HTML, and PDF conversions, defaulting to Pandoc's built-in templates when unset
+- Added command: "Pandoc: Generate Templates" — copies bundled templates into the workspace and updates template settings
+- Explicit `--template` and `--reference-doc` Pandoc arguments continue to override template settings
+
 ## [0.2.1]
 
 - Documented LaTeX engine prerequisite for PDF output, including install commands per OS and the VS Code restart needed for `PATH` updates
