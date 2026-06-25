@@ -73,6 +73,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const templates = [
       { setting: 'docx.template', fileName: 'docx-template.docx' },
+      { setting: 'docx.multipleFilesTemplate', fileName: 'docx-template-with-cover.docx' },
       { setting: 'html.template', fileName: 'html-template.html' },
       { setting: 'pdf.template', fileName: 'pdf-template.tex' }
     ];

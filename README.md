@@ -45,8 +45,8 @@ Create editable DOCX, HTML, and PDF templates in your workspace and automaticall
 
 - Open the **Command Palette** (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 - Run `Pandoc: Generate Templates`
-- Templates are copied into `${workspaceFolder}/pandoc-templates/`
-- The extension updates `pandoc.docx.template`, `pandoc.html.template`, and `pandoc.pdf.template` in workspace settings
+- Templates are copied into `${workspaceFolder}/pandoc-templates/` (including a separate DOCX template with a cover page for folder conversions)
+- The extension updates `pandoc.docx.template`, `pandoc.docx.multipleFilesTemplate`, `pandoc.html.template`, and `pandoc.pdf.template` in workspace settings
 - If `pandoc.pdf.commonArgs` does not already specify a `--pdf-engine`, `--pdf-engine=xelatex` is appended (the bundled PDF template uses `fontspec`, which requires `xelatex` or `lualatex`)
 
 Leave template settings empty to use Pandoc's built-in defaults. Use generated templates when you want an editable starting point, or set template paths manually for your own custom templates.
@@ -102,23 +102,31 @@ This extension contributes the following settings:
 
 Template settings are empty by default, so Pandoc uses its built-in templates unless you opt in.
 
-* `pandoc.docx.template`: Optional DOCX reference document path. The extension passes this to Pandoc as `--reference-doc`.
-* `pandoc.html.template`: Optional HTML template path. The extension passes this to Pandoc as `--template`.
-* `pandoc.pdf.template`: Optional PDF LaTeX template path. The extension passes this to Pandoc as `--template`.
+Each format has two template settings — one for single-file conversions and one for folder (multi-file) conversions. The folder-specific setting is optional; when empty it falls back to the single-file setting.
+
+* `pandoc.docx.template`: Optional DOCX reference document path used for single-file conversions (and as the fallback for folder conversions). Passed to Pandoc as `--reference-doc`.
+* `pandoc.docx.multipleFilesTemplate`: Optional DOCX reference document path used when converting a folder. Typically points at a template that includes a cover page.
+* `pandoc.html.template`: Optional HTML template path used for single-file conversions (and as the fallback for folder conversions). Passed to Pandoc as `--template`.
+* `pandoc.html.multipleFilesTemplate`: Optional HTML template path used when converting a folder.
+* `pandoc.pdf.template`: Optional PDF LaTeX template path used for single-file conversions (and as the fallback for folder conversions). Passed to Pandoc as `--template`.
+* `pandoc.pdf.multipleFilesTemplate`: Optional PDF LaTeX template path used when converting a folder.
 
 Run `Pandoc: Generate Templates` to copy the extension's bundled templates into your workspace and update these settings automatically:
 
 ```json
 {
   "pandoc.docx.template": "${workspaceFolder}/pandoc-templates/docx-template.docx",
+  "pandoc.docx.multipleFilesTemplate": "${workspaceFolder}/pandoc-templates/docx-template-with-cover.docx",
   "pandoc.html.template": "${workspaceFolder}/pandoc-templates/html-template.html",
   "pandoc.pdf.template": "${workspaceFolder}/pandoc-templates/pdf-template.tex"
 }
 ```
 
+The bundled DOCX templates differ by intent: `docx-template.docx` is used for single-file conversions, while `docx-template-with-cover.docx` adds a cover page for folder conversions where the output is a combined document.
+
 To use your own templates, set these paths manually. Relative paths are resolved against the workspace folder.
 
-If you need full control, add `--reference-doc` or `--template` directly to `pandoc.{format}.commonArgs`; explicit Pandoc arguments override the matching template setting.
+If you need full control, add `--reference-doc` or `--template` directly to `pandoc.{format}.commonArgs`; explicit Pandoc arguments override both template settings.
 
 ### Filters
 
@@ -173,6 +181,7 @@ Where `{format}` is `docx`, `html`, or `pdf`.
     "${workspaceFolder}/my-project-filters/word-count.lua"
   ],
   "pandoc.docx.template": "${workspaceFolder}/pandoc-templates/docx-template.docx",
+  "pandoc.docx.multipleFilesTemplate": "${workspaceFolder}/pandoc-templates/docx-template-with-cover.docx",
   "pandoc.html.template": "${workspaceFolder}/pandoc-templates/html-template.html",
   "pandoc.pdf.template": "${workspaceFolder}/pandoc-templates/pdf-template.tex",
   "pandoc.docx.commonArgs": [
@@ -182,7 +191,6 @@ Where `{format}` is `docx`, `html`, or `pdf`.
     "--resource-path=../images:./images"
   ],
   "pandoc.docx.multipleFilesCustomArgs": [
-    "--reference-doc=${workspaceFolder}/my-project-templates/template-with-cover.docx",
     "--number-sections",
     "--toc"
   ],
@@ -257,7 +265,8 @@ This sample demonstrates how the built-in filters work together and provides a p
 ### 0.3.0
 
 - Added template settings for DOCX, HTML, and PDF conversions, defaulting to Pandoc's built-in templates when unset
-- Added command: "Pandoc: Generate Templates" to copy bundled templates into `${workspaceFolder}/pandoc-templates/` and update template settings
+- Added per-conversion-type template settings: `pandoc.docx.multipleFilesTemplate`, `pandoc.html.multipleFilesTemplate`, and `pandoc.pdf.multipleFilesTemplate` apply only to folder conversions and fall back to the matching single-file template when empty
+- Added command: "Pandoc: Generate Templates" to copy bundled templates into `${workspaceFolder}/pandoc-templates/` (including a `docx-template-with-cover.docx` wired to `pandoc.docx.multipleFilesTemplate`) and update template settings
 - Generate Templates also appends `--pdf-engine=xelatex` to `pandoc.pdf.commonArgs` when no `--pdf-engine` is set (the bundled PDF template uses `fontspec`)
 - Explicit `--template` and `--reference-doc` Pandoc arguments continue to override template settings
 - Fixed built-in Lua filters for PDF output: `page-break` now splits mid-paragraph `<!-- pagebreak -->` markers (previously dropped under `hard_line_breaks`), and the bundled PDF template no longer crashes on documents without code blocks or tables

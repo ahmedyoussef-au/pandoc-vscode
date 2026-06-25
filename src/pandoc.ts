@@ -70,14 +70,17 @@ function buildArgsForFormat(cfg: vscode.WorkspaceConfiguration, fmt: Format, inp
     : cfg.get<string[]>(`${fmt}.singleFileCustomArgs`) || [];
   
   const mergedArgs = [...baseArgs, ...contextSpecificArgs];
-  const templateArgs = resolveTemplateArgs(cfg, fmt, mergedArgs, uri);
+  const templateArgs = resolveTemplateArgs(cfg, fmt, mergedArgs, uri, isFolderConversion);
   const resolvedArgs = mergedArgs.map(arg => resolveVariables(arg, uri));
   const args: string[] = [...defaultArgs, ...filterArgs, ...templateArgs, ...resolvedArgs, '-o', output, input];
   return args;
 }
 
-function resolveTemplateArgs(cfg: vscode.WorkspaceConfiguration, fmt: Format, existingArgs: string[], uri: vscode.Uri): string[] {
-  const template = (cfg.get<string>(`${fmt}.template`) || '').trim();
+function resolveTemplateArgs(cfg: vscode.WorkspaceConfiguration, fmt: Format, existingArgs: string[], uri: vscode.Uri, isFolderConversion: boolean): string[] {
+  const folderTemplate = isFolderConversion
+    ? (cfg.get<string>(`${fmt}.multipleFilesTemplate`) || '').trim()
+    : '';
+  const template = folderTemplate || (cfg.get<string>(`${fmt}.template`) || '').trim();
   if (!template) {
     return [];
   }
