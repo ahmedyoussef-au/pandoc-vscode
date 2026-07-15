@@ -12,6 +12,10 @@ This extension integrates Pandoc into Visual Studio Code, allowing you to conver
 - **Built-in filters** - Page breaks, custom header IDs, Mermaid diagrams, and HTML line breaks
 - **Editable templates** - Generate workspace templates for DOCX, HTML, and PDF output
 
+<p align="center">
+  <img src="docs/intro.gif" alt="Pandoc extension conversion workflow" width="1200">
+</p>
+
 ### Single File Conversion
 
 Convert individual Markdown files to DOCX, HTML, or PDF using two convenient methods:
