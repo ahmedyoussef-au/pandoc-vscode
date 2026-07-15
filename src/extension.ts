@@ -55,13 +55,72 @@ export function activate(context: vscode.ExtensionContext) {
       return;
     }
 
-    const sampleSource = path.join(extensionPath, 'samples', 'pandoc-sample.md');
+    const sampleSource = path.join(extensionPath, 'assets', 'samples', 'pandoc-sample.md');
     const filePath = path.join(folder.uri.fsPath, 'pandoc-sample.md');
     const content = await fs.promises.readFile(sampleSource, 'utf8');
 
     await fs.promises.writeFile(filePath, content, 'utf8');
     const doc = await vscode.workspace.openTextDocument(filePath);
     await vscode.window.showTextDocument(doc);
+  });
+
+  const generateTemplates = vscode.commands.registerCommand('pandoc.generateTemplates', async () => {
+    const folder = getTemplateWorkspaceFolder();
+    if (!folder) {
+      vscode.window.showWarningMessage('Please open a workspace folder first.');
+      return;
+    }
+
+    const templates = [
+      { setting: 'docx.template', fileName: 'docx-template.docx' },
+      { setting: 'docx.multipleFilesTemplate', fileName: 'docx-template-with-cover.docx' },
+      { setting: 'html.template', fileName: 'html-template.html' },
+      { setting: 'pdf.template', fileName: 'pdf-template.tex' }
+    ];
+    const sourceDir = path.join(extensionPath, 'assets', 'templates');
+    const targetDir = path.join(folder.uri.fsPath, 'pandoc-templates');
+    const configurationTarget = vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 1
+      ? vscode.ConfigurationTarget.WorkspaceFolder
+      : vscode.ConfigurationTarget.Workspace;
+
+    await fs.promises.mkdir(targetDir, { recursive: true });
+
+    let copiedCount = 0;
+    for (const template of templates) {
+      const source = path.join(sourceDir, template.fileName);
+      const target = path.join(targetDir, template.fileName);
+
+      if (!fs.existsSync(target)) {
+        await fs.promises.copyFile(source, target);
+        copiedCount += 1;
+      }
+
+      await vscode.workspace.getConfiguration('pandoc').update(
+        template.setting,
+        `\${workspaceFolder}/pandoc-templates/${template.fileName}`,
+        configurationTarget
+      );
+    }
+
+    const pdfCfg = vscode.workspace.getConfiguration('pandoc');
+    const pdfCommon = pdfCfg.get<string[]>('pdf.commonArgs') || [];
+    const pdfCustom = pdfCfg.get<string[]>('pdf.customArgs') || [];
+    const hasEngine = [...pdfCommon, ...pdfCustom].some(arg =>
+      arg === '--pdf-engine' || arg.startsWith('--pdf-engine=')
+    );
+    if (!hasEngine) {
+      await pdfCfg.update(
+        'pdf.commonArgs',
+        [...pdfCommon, '--pdf-engine=xelatex'],
+        configurationTarget
+      );
+    }
+
+    vscode.window.showInformationMessage(
+      copiedCount === templates.length
+        ? 'Generated Pandoc templates and updated workspace settings.'
+        : 'Updated workspace settings. Existing Pandoc templates were left unchanged.'
+    );
   });
 
   context.subscriptions.push(
@@ -71,8 +130,21 @@ export function activate(context: vscode.ExtensionContext) {
     registerFolder('pandoc.convertFolderToDocx', 'docx'),
     registerFolder('pandoc.convertFolderToHtml', 'html'),
     registerFolder('pandoc.convertFolderToPdf', 'pdf'),
-    generateSample
+    generateSample,
+    generateTemplates
   );
+}
+
+function getTemplateWorkspaceFolder(): vscode.WorkspaceFolder | undefined {
+  const activeUri = vscode.window.activeTextEditor?.document.uri;
+  if (activeUri) {
+    const activeFolder = vscode.workspace.getWorkspaceFolder(activeUri);
+    if (activeFolder) {
+      return activeFolder;
+    }
+  }
+
+  return vscode.workspace.workspaceFolders?.[0];
 }
 
 async function getMarkdownUri(resource?: vscode.Uri): Promise<vscode.Uri | undefined> {

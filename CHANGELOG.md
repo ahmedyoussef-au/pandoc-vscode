@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.0]
+
+- Added template settings for DOCX, HTML, and PDF conversions, defaulting to Pandoc's built-in templates when unset
+- Added per-conversion-type template settings — `pandoc.docx.multipleFilesTemplate`, `pandoc.html.multipleFilesTemplate`, and `pandoc.pdf.multipleFilesTemplate` apply only to folder conversions and fall back to the matching single-file template when empty
+- Added command: "Pandoc: Generate Templates" — copies bundled templates into the workspace at `pandoc-templates/` (including a `docx-template-with-cover.docx` wired to `pandoc.docx.multipleFilesTemplate`) and updates template settings
+- Generate Templates also appends `--pdf-engine=xelatex` to `pandoc.pdf.commonArgs` when no `--pdf-engine` is set (the bundled PDF template uses `fontspec`)
+- Explicit `--template` and `--reference-doc` Pandoc arguments continue to override template settings
+- Fixed built-in Lua filters for PDF output: `page-break` now splits mid-paragraph `<!-- pagebreak -->` markers (previously dropped under `hard_line_breaks`), and the bundled PDF template no longer crashes on documents without code blocks or tables
+
 ## [0.2.1]
 
 - Documented LaTeX engine prerequisite for PDF output, including install commands per OS and the VS Code restart needed for `PATH` updates

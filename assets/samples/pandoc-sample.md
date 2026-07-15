@@ -1,13 +1,14 @@
-# Pandoc VS Code Extension — Sample Document
+# Pandoc VS Code Extension - Sample Document
 
-This file demonstrates all built-in Lua filters. Convert it to DOCX, HTML, or PDF using the command palette or right-click menu.
+This file demonstrates the built-in Lua filters, template settings, and common Pandoc conversion options. Convert it to DOCX, HTML, or PDF using the command palette or right-click menu.
 
 ## How to Use <!-- {#how-to-use} -->
 
 1. **Convert this file**: Right-click in the editor or Explorer → Pandoc → Choose format (DOCX, HTML, or PDF)
 2. **Convert a folder**: Right-click a folder in the Explorer → Pandoc → Choose format (DOCX, HTML, or PDF)
-3. **Generate Sample Markdown**: Right-click in the editor or Explorer → Pandoc → Generate Sample Markdown
-4. **Command Palette**: Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux) → type "Pandoc"
+3. **Generate Sample Markdown**: Open the command palette and run `Pandoc: Generate Sample Markdown`
+4. **Generate Templates**: Open the command palette and run `Pandoc: Generate Templates`
+5. **Command Palette**: Press `Cmd+Shift+P` (macOS) or `Ctrl+Shift+P` (Windows/Linux) → type "Pandoc"
 
 ---
 
@@ -17,6 +18,7 @@ You need the following tools installed:
 
 - **Pandoc** ([Install guide](https://pandoc.org/installing.html))
 - **Mermaid CLI** (`mmdc`) for rendering Mermaid diagrams ([Install guide](https://github.com/mermaid-js/mermaid-cli))
+- **A LaTeX engine** such as `xelatex` for PDF output
 
 Mermaid CLI requires Node.js and npm to be installed first.
 
@@ -49,13 +51,14 @@ Add these to your VS Code settings (`settings.json`):
     "builtin:page-break",
     "${workspaceFolder}/my-project-filters/word-count.lua"
   ],
+  "pandoc.docx.template": "${workspaceFolder}/pandoc-templates/docx-template.docx",
+  "pandoc.html.template": "${workspaceFolder}/pandoc-templates/html-template.html",
+  "pandoc.pdf.template": "${workspaceFolder}/pandoc-templates/pdf-template.tex",
   "pandoc.docx.commonArgs": [
-    "--reference-doc=${workspaceFolder}/my-project-templates/template.docx",
-    "--toc"
+    "--number-sections"
   ],
   "pandoc.docx.multipleFilesCustomArgs": [
-    "--reference-doc=${workspaceFolder}/my-project-templates/cover.docx",
-    "--number-sections"
+    "--toc"
   ],
   "pandoc.html.commonArgs": [
     "--standalone",
@@ -66,6 +69,22 @@ Add these to your VS Code settings (`settings.json`):
   ]
 }
 ```
+
+### Templates <!-- {#templates} -->
+
+Template settings are empty by default. When they are empty, Pandoc uses its own built-in defaults.
+
+Run `Pandoc: Generate Templates` to copy the extension templates into your workspace at `pandoc-templates/` and update these settings automatically:
+
+- `pandoc.docx.template` → passed to Pandoc as `--reference-doc`
+- `pandoc.html.template` → passed to Pandoc as `--template`
+- `pandoc.pdf.template` → passed to Pandoc as `--template`
+
+If `pandoc.pdf.commonArgs` does not already specify a `--pdf-engine`, `--pdf-engine=xelatex` is appended (the bundled PDF template uses `fontspec`, which requires `xelatex` or `lualatex`).
+
+You can edit those generated files or point the settings at your own templates.
+
+Use `pandoc.{format}.commonArgs` as the advanced escape hatch. If you add `--template` or `--reference-doc` directly to `commonArgs`, that explicit Pandoc argument overrides the matching template setting.
 
 ### Format-Specific Notes
 
@@ -111,9 +130,9 @@ Where `section-id` is the ID of the target section. Section IDs can be customise
 
 ## Line Breaks <!-- {#line-breaks} -->
 
-This line has a break here<br>and continues on the next line.
+This line has a break here`<br>` and continues on the next line.
 
-You can also use the self-closing form:<br>like this.
+You can also use the self-closing form:`<br />`like this.
 
 ## Page Breaks <!-- {#page-breaks} -->
 
@@ -166,7 +185,8 @@ graph TD
 
 Pandoc supports different table formats including pipe tables, multiline tables and grid tables. For consistency, use pipe tables everywhere to ensure compatibility with major markdown viewers and editors.
 
-**Pipe Table Example:**
+
+### Pipe Table Example:
 
 ```markdown
 | Header 1 | Header 2 |
@@ -174,11 +194,15 @@ Pandoc supports different table formats including pipe tables, multiline tables 
 | Row 1    | Data     |
 ```
 
+Produces:
+
 | Header 1 | Header 2 |
 |----------|----------|
 | Row 1    | Data     |
 
-**Multi-line Pipe Table Example:**
+---
+
+### Multi-line Pipe Table Example:
 
 ```markdown
 | Header 1  | Header 2               |
@@ -186,13 +210,16 @@ Pandoc supports different table formats including pipe tables, multiline tables 
 | Row 1     | Item 1<br>Item 2       |
 | Row 2     | • List 1<br>• List 2   |
 ```
+Produces:
 
 | Header 1  | Header 2               |
 |-----------|------------------------|
 | Row 1     | Item 1<br>Item 2       |
 | Row 2     | • List 1<br>• List 2   |
 
-**Table with Alignment and Spacing:**
+---
+
+### Table with Alignment and Spacing:
 
 - Use colons `:` to set alignment for each column.
 - Use tabs or spaces to add padding within cells and allow word to auto-size columns.
@@ -202,6 +229,7 @@ Pandoc supports different table formats including pipe tables, multiline tables 
 |:------------------------|:-------------------------:|------------------------:|
 | Data                    | Data                      | Data                    |
 ```
+Produces:
 
 | Left Align              | Centre Align              | Right Align             |
 |:------------------------|:-------------------------:|------------------------:|

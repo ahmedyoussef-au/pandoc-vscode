@@ -33,15 +33,57 @@ local function handle_raw_block(el)
   return nil
 end
 
--- Handle paragraphs containing only a pagebreak marker rendered as RawInline.
+-- True when an inline is a pagebreak marker rendered as RawInline html.
+local function is_pagebreak_inline(inline)
+  return inline.t == 'RawInline' and inline.format == 'html' and is_pagebreak(inline.text)
+end
+
+-- Handle paragraphs that contain a pagebreak marker. With
+-- markdown+hard_line_breaks, a marker written on its own line (but not
+-- surrounded by blank lines) is parsed as a RawInline in the MIDDLE of a
+-- paragraph, flanked by LineBreaks rather than standing alone. Split such a
+-- paragraph at each marker so the page break still takes effect, dropping the
+-- LineBreaks that hugged the marker so we don't leave dangling blank lines.
 local function handle_para(el)
-  if #el.content == 1 then
-    local inline = el.content[1]
-    if inline.t == 'RawInline' and inline.format == 'html' and is_pagebreak(inline.text) then
-      return newpage(FORMAT or '')
+  local has_marker = false
+  for _, inline in ipairs(el.content) do
+    if is_pagebreak_inline(inline) then
+      has_marker = true
+      break
     end
   end
-  return nil
+  if not has_marker then
+    return nil
+  end
+
+  local blocks = {}
+  local current = {}
+
+  local function flush()
+    -- Trim a LineBreak that sat directly against the marker on either side.
+    while #current > 0 and current[#current].t == 'LineBreak' do
+      table.remove(current)
+    end
+    while #current > 0 and current[1].t == 'LineBreak' do
+      table.remove(current, 1)
+    end
+    if #current > 0 then
+      table.insert(blocks, pandoc.Para(current))
+    end
+    current = {}
+  end
+
+  for _, inline in ipairs(el.content) do
+    if is_pagebreak_inline(inline) then
+      flush()
+      table.insert(blocks, newpage(FORMAT or ''))
+    else
+      table.insert(current, inline)
+    end
+  end
+  flush()
+
+  return blocks
 end
 
 return {
